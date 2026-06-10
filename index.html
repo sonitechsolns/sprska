@@ -1,573 +1,1016 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sparshika | Production Digital Twin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #060a10; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
-    canvas { display: block; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sparshika — The Spatial Digital Twin · By Soni Tech Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#030712;
+    --bg2:#050a15;
+    --panel:#0a1128;
+    --cyan:#22d3ee;
+    --cyan-500:#06b6d4;
+    --slate:#94a3b8;
+    --slate-d:#64748b;
+    --line:rgba(255,255,255,0.06);
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:#cbd5e1;font-family:var(--font-body);font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+  ::selection{background:rgba(6,182,212,0.3)}
+  a{text-decoration:none;color:inherit}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .icon{stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;width:24px;height:24px}
 
-    /* ── HUD ─────────────────────────────────────── */
-    #hud {
-      position: fixed; top: 14px; left: 14px; z-index: 10;
-      background: rgba(4,8,20,.88);
-      border: 1px solid #1a3a5a; border-radius: 6px;
-      padding: 12px 16px; min-width: 245px;
-      pointer-events: none;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 28px rgba(0,160,255,.10);
-    }
-    #hud-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px; letter-spacing: 4px; color: #fff;
-      margin-bottom: 10px; padding-bottom: 7px;
-      border-bottom: 1px solid #1a3a5a;
-    }
-    .hud-row {
-      display: flex; justify-content: space-between;
-      font-size: 11px; line-height: 2.0; color: #4a7a9b;
-    }
-    .hud-row span:last-child {
-      font-family: 'Share Tech Mono', monospace; color: #7ab8f5;
-    }
-    .hud-row.warn span:last-child { color: #ffb300; }
-    .hud-row.crit span:last-child { color: #ff4040; }
-    .hud-row.ok   span:last-child { color: #00e676; }
+  .glow{position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+  .glow-a{top:-100px;left:18%;width:420px;height:420px;background:rgba(8,145,178,0.10);filter:blur(120px)}
+  .glow-b{bottom:-150px;right:14%;width:520px;height:520px;background:rgba(30,64,175,0.10);filter:blur(150px)}
 
-    /* ── Bloom controls ──────────────────────────── */
-    #bloom-ctrl {
-      position: fixed; top: 14px; right: 14px; z-index: 10;
-      background: rgba(4,8,20,.88); border: 1px solid #1a3a5a;
-      border-radius: 6px; padding: 10px 14px; min-width: 200px;
-      backdrop-filter: blur(8px);
-    }
-    #bloom-ctrl label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px; color: #4a7a9b;
-      display: flex; justify-content: space-between; margin-bottom: 6px;
-    }
-    #bloom-ctrl input[type=range] {
-      width: 100%; accent-color: #00aaff; cursor: pointer;
-    }
+  /* nav */
+  nav{position:fixed;top:0;width:100%;z-index:50;transition:all .35s ease;padding:26px 0}
+  nav.scrolled{background:rgba(3,7,18,0.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:16px 0}
+  .container{max-width:1200px;margin:0 auto;padding:0 28px}
+  .nav-inner{display:flex;justify-content:space-between;align-items:center}
+  .brand-link{display:block;border-radius:8px;padding:4px 6px;margin:-4px -6px;transition:background .25s}
+  .brand-link:hover{background:rgba(255,255,255,0.04)}
+  .brand-link:hover .brand-name{color:var(--cyan)}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand-row{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:30px;height:30px;color:var(--cyan)}
+  .brand-name{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:.18em;color:#fff;transition:color .25s}
+  .brand-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:.3em;color:rgba(6,182,212,0.6);text-transform:uppercase;padding-left:42px;margin-top:4px;display:flex;align-items:center;gap:5px}
+  .brand-sub svg{width:9px;height:9px;opacity:.7}
+  .nav-links{display:flex;align-items:center;gap:34px;font-size:12.5px;letter-spacing:.18em;color:var(--slate);font-weight:400}
+  .nav-links a{transition:color .25s}
+  .nav-links a:hover{color:var(--cyan)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .btn{font-family:var(--font-body);font-size:12.5px;letter-spacing:.16em;border-radius:6px;transition:all .3s;white-space:nowrap}
+  .btn-ghost{padding:9px 18px;color:#cbd5e1}
+  .btn-ghost:hover{color:#fff}
+  .btn-outline{padding:9px 22px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.5);color:var(--cyan)}
+  .btn-outline:hover{background:var(--cyan-500);color:var(--bg);box-shadow:0 0 22px rgba(6,182,212,0.4)}
 
-    /* ── Anomaly ticker ──────────────────────────── */
-    #anomaly-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-      background: rgba(4,8,20,.92); border-top: 1px solid #ff3d3d44;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px; color: #ff6b6b;
-      padding: 5px 14px; display: none; white-space: nowrap;
-    }
+  /* hero */
+  .hero{position:relative;z-index:1;padding:150px 0 110px}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .badge{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.05);border-radius:999px;padding:7px 16px;font-family:var(--font-mono);font-size:11px;color:var(--cyan);letter-spacing:.08em}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,238,0.5)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(34,211,238,0)}}
+  h1{font-family:var(--font-display);font-weight:300;font-size:clamp(40px,5.6vw,72px);line-height:1.05;color:#fff;letter-spacing:-.02em;margin:26px 0 22px}
+  h1 .accent{font-weight:700;background:linear-gradient(100deg,#22d3ee,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:18px;color:var(--slate);max-width:520px;font-weight:300;margin-bottom:34px}
+  .hero-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .btn-solid{padding:16px 30px;background:var(--cyan-500);color:var(--bg);font-weight:600;font-size:13px;letter-spacing:.14em;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
+  .btn-solid:hover{background:var(--cyan);box-shadow:0 0 32px rgba(6,182,212,0.5);transform:translateY(-2px)}
+  .btn-glass{padding:16px 30px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:13px;letter-spacing:.14em;border-radius:6px;transition:all .3s}
+  .btn-glass:hover{background:rgba(255,255,255,0.09)}
 
-    /* ── Loading overlay ─────────────────────────── */
-    #overlay {
-      position: fixed; inset: 0; z-index: 100;
-      background: #060a10;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px;
-    }
-    #overlay-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 16px; letter-spacing: 6px; color: #00e5ff;
-    }
-    #progress-wrap { width: 320px; height: 2px; background: #0e2a44; border-radius: 2px; overflow: hidden; }
-    #progress-bar  { height: 100%; width: 0%; background: linear-gradient(90deg,#00e5ff,#0044ff); transition: width .3s ease; box-shadow: 0 0 10px #00e5ff88; }
-    #overlay-status { font-size: 10px; color: #2a5a7a; font-family: 'Share Tech Mono', monospace; letter-spacing: 2px; }
-    #overlay-error  { color: #ff4444; font-size: 11px; font-family: 'Share Tech Mono', monospace; max-width: 500px; text-align: center; display: none; }
+  .visual{position:relative;width:100%;aspect-ratio:1/1;max-width:480px;margin-left:auto}
+  .visual-frame{position:absolute;inset:0;border:1px solid rgba(255,255,255,0.1);border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(8,51,68,0.25),transparent);display:flex;align-items:center;justify-content:center;box-shadow:0 30px 80px rgba(8,51,68,0.3)}
+  .floor-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px);background-size:38px 38px;transform:perspective(520px) rotateX(60deg) scale(2.1);transform-origin:top}
+  .racks{position:relative;z-index:2;display:flex;gap:26px;transform:translateY(-26px)}
+  .rack{width:74px;height:248px;border:1px solid rgba(6,182,212,0.3);background:rgba(10,17,40,0.8);backdrop-filter:blur(6px);border-radius:4px;position:relative;box-shadow:0 0 34px rgba(6,182,212,0.1);padding:5px;display:flex;flex-direction:column-reverse;gap:4px;animation:floaty 6s ease-in-out infinite}
+  .rack:nth-child(2){animation-delay:-2s}.rack:nth-child(3){animation-delay:-4s}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .unit{height:15px;background:#1e293b;border:1px solid rgba(51,65,85,0.5);border-radius:2px;position:relative}
+  .led{position:absolute;top:5px;width:4px;height:4px;border-radius:50%;background:#475569}
+  .led.on-cyan{background:var(--cyan);box-shadow:0 0 5px #22d3ee;animation:blink 2.4s infinite}
+  .led.on-blue{background:#3b82f6;box-shadow:0 0 5px #3b82f6;animation:blink 3.1s infinite}
+  .led.l1{right:7px}.led.l2{right:15px}
+  @keyframes blink{0%,90%{opacity:1}94%{opacity:.25}100%{opacity:1}}
+  .visual-label{position:absolute;bottom:22px;font-family:var(--font-mono);font-size:10.5px;color:rgba(6,182,212,0.55);letter-spacing:.22em;text-transform:uppercase;z-index:3}
 
-    /* ── Hover popup ─────────────────────────────── */
-    #popup {
-      position: fixed; pointer-events: none; display: none; z-index: 20;
-      background: rgba(3,8,22,.93); border: 1px solid #1e3a5f;
-      border-radius: 5px; padding: 8px 13px; min-width: 182px;
-      backdrop-filter: blur(4px);
-    }
-    #popup[data-mode="far"]  { border-color: #1e3a5f; }
-    #popup[data-mode="near"] { border-color: #00e5ff66; }
-    .pop-row { display: flex; justify-content: space-between; gap: 18px; font-size: 11px; line-height: 1.9; font-family: 'Share Tech Mono', monospace; }
-    .pop-label { color: #3a6a8a; }
-    .pop-value { color: #c8e6ff; font-weight: 600; }
-  </style>
+  /* section shells */
+  section.block{padding:104px 0;position:relative;z-index:1}
+  .features{background:var(--bg2);border-top:1px solid var(--line)}
+  .sec-head{text-align:center;margin-bottom:66px}
+  .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.32em;color:var(--cyan-500);text-transform:uppercase;margin-bottom:16px}
+  .sec-head h2{font-family:var(--font-display);font-weight:300;font-size:32px;color:#fff;letter-spacing:.02em;margin-bottom:18px}
+  .sec-head p{color:var(--slate);max-width:560px;margin:0 auto;font-size:15px}
+  .sec-rule{width:62px;height:3px;background:var(--cyan-500);margin:14px auto 0;border-radius:99px}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .card{padding:34px;border:1px solid var(--line);background:rgba(255,255,255,0.02);border-radius:12px;transition:all .35s}
+  .card:hover{background:rgba(255,255,255,0.04);transform:translateY(-4px)}
+  .card-ic{width:50px;height:50px;border-radius:8px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;color:var(--cyan);margin-bottom:24px;transition:all .35s}
+  .card:hover .card-ic{transform:scale(1.08);box-shadow:0 0 18px rgba(6,182,212,0.3)}
+  .card h3{font-family:var(--font-display);font-weight:500;font-size:18px;color:#fff;letter-spacing:.06em;margin-bottom:13px}
+  .card p{font-size:14px;color:var(--slate);font-weight:300}
+
+  /* panel A — ROI */
+  .roi{background:var(--bg2);border-top:1px solid var(--line)}
+  .roi-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:stretch}
+  .panel-card{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:16px;padding:38px}
+  .slider-row{margin-bottom:30px}
+  .slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .slider-top label{font-size:14px;color:#cbd5e1}
+  .slider-val{font-family:var(--font-mono);font-size:16px;color:var(--cyan);font-weight:500}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;background:#1e293b;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 12px rgba(34,211,238,0.6);border:2px solid #0a1128}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--cyan);cursor:pointer;border:2px solid #0a1128}
+  .roi-out{background:linear-gradient(150deg,rgba(6,182,212,0.12),rgba(10,17,40,0.4));border:1px solid rgba(6,182,212,0.3);border-radius:16px;padding:38px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+  .roi-out .lbl{font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(6,182,212,0.8);margin-bottom:18px}
+  .roi-big{font-family:var(--font-display);font-weight:700;font-size:clamp(34px,4.5vw,52px);color:#fff;letter-spacing:-.02em;line-height:1}
+  .roi-band{font-family:var(--font-mono);font-size:12px;color:var(--slate);margin-top:14px}
+  .roi-meta{margin-top:26px;border-top:1px solid var(--line);padding-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .roi-meta div span{display:block}
+  .roi-meta .mv{font-family:var(--font-mono);color:var(--cyan);font-size:18px}
+  .roi-meta .mk{font-size:11px;color:var(--slate-d);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+
+  /* panel B — benchmark terminal */
+  .term{background:#04060d;border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:820px;margin:0 auto;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  .term-bar{display:flex;align-items:center;gap:8px;padding:13px 18px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--line)}
+  .term-dot{width:11px;height:11px;border-radius:50%}
+  .td-r{background:#ef4444}.td-y{background:#eab308}.td-g{background:#22c55e}
+  .term-title{margin-left:10px;font-family:var(--font-mono);font-size:12px;color:var(--slate)}
+  .term-body{padding:24px;font-family:var(--font-mono);font-size:13px;min-height:280px;line-height:1.9}
+  .term-line{white-space:pre-wrap;word-break:break-word}
+  .tl-prompt{color:#475569}.tl-key{color:var(--slate)}.tl-val{color:var(--cyan)}.tl-ok{color:#22c55e}.tl-warn{color:#eab308}.tl-dim{color:#475569}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--cyan);vertical-align:-2px;animation:cblink 1s steps(1) infinite}
+  @keyframes cblink{50%{opacity:0}}
+  .term-foot{padding:18px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .score-pill{font-family:var(--font-mono);font-size:13px;color:var(--cyan);background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);padding:7px 16px;border-radius:99px}
+
+  /* panel C — ecosystem */
+  .eco{background:var(--bg2);border-top:1px solid var(--line)}
+  .eco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .eco-card{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:14px;padding:30px;transition:all .35s;display:flex;flex-direction:column;gap:14px}
+  .eco-card:hover{border-color:rgba(6,182,212,0.4);transform:translateY(-4px);background:rgba(6,182,212,0.04)}
+  .eco-card.active{border-color:rgba(6,182,212,0.5);background:rgba(6,182,212,0.06)}
+  .eco-ic{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+  .eco-card h3{font-family:var(--font-display);font-weight:600;font-size:17px;color:#fff;letter-spacing:.03em}
+  .eco-card p{font-size:13.5px;color:var(--slate)}
+  .eco-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan-500);margin-top:auto}
+  .eco-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--cyan);margin-top:4px}
+  .eco-link svg{width:14px;height:14px}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);background:#020202;padding:64px 0 32px;position:relative;z-index:1}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:56px}
+  .sts-row{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+  .sts-mark{width:42px;height:42px;border-radius:9px;background:linear-gradient(135deg,#6366f1,#7e22ce);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 20px rgba(99,102,241,0.25)}
+  .sts-mark span{font-family:var(--font-display);font-weight:700;color:#fff;font-size:17px;letter-spacing:.06em}
+  .sts-name{font-family:var(--font-display);font-weight:600;font-size:21px;color:#fff;letter-spacing:.14em;text-transform:uppercase}
+  .foot-desc{font-size:14px;color:var(--slate);max-width:360px;font-weight:300}
+  footer h4{font-family:var(--font-display);font-weight:600;font-size:13px;color:#fff;letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px}
+  footer ul{list-style:none;display:flex;flex-direction:column;gap:13px}
+  footer ul a,.legal-btn{font-size:14px;color:var(--slate);font-weight:300;transition:color .25s;display:inline-flex;align-items:center;gap:7px}
+  footer ul a:hover,.legal-btn:hover{color:var(--cyan)}
+  .legal-btn svg{width:14px;height:14px;opacity:.7}
+  .report{color:#f87171;display:inline-flex;align-items:center;gap:8px;margin-top:8px}
+  .report:hover{color:#fca5a5}
+  .foot-bottom{border-top:1px solid var(--line);padding-top:28px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .copy{font-size:11.5px;color:var(--slate-d);letter-spacing:.08em;text-transform:uppercase}
+  .made{font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:linear-gradient(90deg,#FF9933,#fff,#138808);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+  .overlay.show{display:flex}
+  .overlay-bg{position:absolute;inset:0;background:rgba(3,7,18,0.85);backdrop-filter:blur(7px)}
+  .modal{position:relative;width:100%;background:var(--panel);border:1px solid rgba(6,182,212,0.3);border-radius:14px;box-shadow:0 40px 100px rgba(0,0,0,0.6);padding:34px;max-height:90vh;overflow-y:auto;animation:rise .35s ease}
+  .modal.sm{max-width:430px}
+  @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .modal-x{position:absolute;top:18px;right:18px;color:var(--slate);transition:color .2s;z-index:2}
+  .modal-x:hover{color:#fff}
+  .modal-head{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+  .modal-head .brand-mark{width:24px;height:24px}
+  .modal-title{font-family:var(--font-display);font-weight:700;font-size:19px;color:#fff;letter-spacing:.18em}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-family:var(--font-mono);font-size:11px;color:var(--cyan-500);letter-spacing:.08em;margin-bottom:7px}
+  .field-wrap{position:relative}
+  .field-ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--slate-d);stroke:currentColor;fill:none;stroke-width:1.6}
+  input[type=text],input[type=email],input[type=password],select{width:100%;background:rgba(0,0,0,0.5);border:1px solid #334155;border-radius:6px;padding:11px 15px;color:#fff;font-family:var(--font-body);font-size:14px;transition:all .25s;outline:none}
+  input.has-ic{padding-left:40px}
+  input::placeholder{color:#475569}
+  input:focus,select:focus{border-color:var(--cyan-500);box-shadow:0 0 0 1px var(--cyan-500)}
+  .modal .btn-solid{width:100%;margin-top:10px}
+  .spinner{width:16px;height:16px;border:2px solid rgba(3,7,18,0.35);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* downloads center (fullscreen) */
+  .dc{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;flex-direction:column;overflow-y:auto}
+  .dc.show{display:flex}
+  .dc-top{position:sticky;top:0;background:rgba(3,7,18,0.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:18px 0;z-index:3}
+  .dc-top .container{display:flex;justify-content:space-between;align-items:center}
+  .dc-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--slate)}
+  .dc-avatar{width:36px;height:36px;border-radius:50%;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-weight:600;font-family:var(--font-display)}
+  .dc-main{flex:1;padding:60px 0 80px}
+  .dc-hero{text-align:center;margin-bottom:54px}
+  .dc-hero .badge{margin-bottom:20px}
+  .dc-hero h2{font-family:var(--font-display);font-weight:300;font-size:38px;color:#fff;margin-bottom:14px}
+  .dc-hero h2 b{font-weight:700}
+  .dc-hero p{color:var(--slate);max-width:560px;margin:0 auto}
+  .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;max-width:900px;margin:0 auto}
+  .dl-card{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:16px;padding:34px;transition:border-color .3s}
+  .dl-card:hover{border-color:rgba(6,182,212,0.35)}
+  .dl-os{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .dl-os-ic{width:52px;height:52px;border-radius:12px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;color:var(--cyan)}
+  .dl-os h3{font-family:var(--font-display);font-weight:600;font-size:19px;color:#fff}
+  .dl-os .ver{font-family:var(--font-mono);font-size:11px;color:var(--slate-d)}
+  .dl-file{font-family:var(--font-mono);font-size:12.5px;color:var(--slate);background:rgba(0,0,0,0.35);border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .dl-file .sz{color:var(--slate-d)}
+  .dl-note{font-size:12px;color:var(--slate-d);margin-bottom:20px}
+  .dl-btn{width:100%;padding:14px;background:var(--cyan-500);color:var(--bg);font-weight:600;font-size:13px;letter-spacing:.12em;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .3s}
+  .dl-btn:hover{background:var(--cyan);box-shadow:0 0 26px rgba(6,182,212,0.45)}
+  .dl-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+  .prog{margin-top:20px;display:none}
+  .prog.show{display:block}
+  .prog-bar{height:8px;border-radius:99px;background:#1e293b;overflow:hidden}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,#06b6d4,#3b82f6);border-radius:99px;transition:width .25s linear}
+  .prog-meta{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--font-mono);font-size:11.5px;color:var(--slate)}
+  .prog-meta .pct{color:var(--cyan)}
+  .install{margin-top:18px;background:rgba(6,182,212,0.05);border:1px solid rgba(6,182,212,0.25);border-radius:10px;padding:18px;display:none}
+  .install.show{display:block;animation:rise .35s ease}
+  .install h4{font-family:var(--font-display);font-size:13px;color:var(--cyan);letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .install ol{margin:0;padding-left:18px;font-size:12.5px;color:#cbd5e1;line-height:1.8}
+  .install code{font-family:var(--font-mono);background:rgba(0,0,0,0.4);padding:1px 6px;border-radius:4px;color:var(--cyan);font-size:11.5px}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  .hidden{display:none}
+
+  @media(max-width:920px){
+    .hero-grid,.roi-grid{grid-template-columns:1fr;gap:48px}
+    .visual{margin:0 auto}
+    .cards,.eco-grid{grid-template-columns:1fr}
+    .dl-grid{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .nav-links{display:none}
+  }
+  @media(max-width:560px){
+    .nav-cta .btn-ghost{display:none}
+    .foot-grid{grid-template-columns:1fr}
+    .modal{padding:24px}
+    .roi-meta{grid-template-columns:1fr}
+  }
+</style>
 </head>
 <body>
 
-<div id="overlay">
-  <div id="overlay-title">SPARSHIKA</div>
-  <div id="progress-wrap"><div id="progress-bar"></div></div>
-  <div id="overlay-status">INITIALIZING HARDWARE CORE...</div>
-  <div id="overlay-error"></div>
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="container nav-inner">
+    <a class="brand-link" href="https://soni-tech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Sparshika by Soni Tech Solutions — visit STS">
+      <div class="brand">
+        <div class="brand-row">
+          <svg class="brand-mark icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span class="brand-name">SPARSHIKA</span>
+        </div>
+        <span class="brand-sub">By Soni Tech Solutions
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </span>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#platform">PLATFORM</a>
+      <a href="#features">CAPABILITIES</a>
+      <a href="#roi">ROI</a>
+      <a href="#ecosystem">ECOSYSTEM</a>
+    </div>
+    <div class="nav-cta">
+      <button class="btn btn-ghost" onclick="openModal('login')">CLIENT LOGIN</button>
+      <button class="btn btn-outline" onclick="openModal('login')">FREE TRIAL</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<main class="hero" id="platform">
+  <div class="container hero-grid">
+    <div class="reveal in">
+      <span class="badge"><span class="dot"></span>SPARSHIKA CORE v2.0 LIVE</span>
+      <h1>The Spatial<br><span class="accent">Digital Twin.</span></h1>
+      <p>Transform your physical datacenter telemetry into a hyper-realistic, fully interactive WebGL simulation. Monitor thermal loads, network throughput, and hardware anomalies in real time.</p>
+      <div class="hero-actions">
+        <button class="btn-solid" onclick="openModal('login')">START FREE TRIAL
+          <svg class="icon" style="width:16px;height:16px"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+        <button class="btn-glass" onclick="document.getElementById('features').scrollIntoView()">VIEW CAPABILITIES</button>
+      </div>
+    </div>
+    <div class="visual reveal in">
+      <div class="visual-frame">
+        <div class="floor-grid"></div>
+        <div class="racks" id="racks"></div>
+        <div class="visual-label">Interactive WebGL Engine Active</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- FEATURES -->
+<section class="block features" id="features">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Core Engine</div>
+      <h2>ENGINEERED FOR SCALE</h2>
+      <div class="sec-rule"></div>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="card-ic"><svg class="icon"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg></div>
+        <h3>ASSET INSTANCING</h3>
+        <p>Proprietary Three.js architecture utilizing InstancedMesh. Render thousands of server nodes and drive bays simultaneously with less than 200MB memory footprint.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ic"><svg class="icon"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3>LIVE TELEMETRY HOOKS</h3>
+        <p>Connect via WebSocket or REST. Translate exact I/O speeds, fan RPMs, and thermal arrays into pulsating, dynamic 3D emissive materials instantly.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ic"><svg class="icon"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>AI ANOMALY ENGINE</h3>
+        <p>Built-in statistical standard deviation modeling. Predict hardware failure and thermal throttling visually before it triggers datacenter alarms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL A — ROI CALCULATOR -->
+<section class="block roi" id="roi">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Panel A · Decision Intelligence</div>
+      <h2>DATACENTER ROI CALCULATOR</h2>
+      <p>Model the operational savings of routing your fleet through the Sparshika AI Core. Adjust the sliders to match your infrastructure.</p>
+    </div>
+    <div class="roi-grid reveal">
+      <div class="panel-card">
+        <div class="slider-row">
+          <div class="slider-top"><label>Active racks</label><span class="slider-val" id="rRacksOut">50</span></div>
+          <input type="range" id="rRacks" min="1" max="200" step="1" value="50" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-top"><label>Technician hourly rate</label><span class="slider-val" id="rRateOut">₹3,000</span></div>
+          <input type="range" id="rRate" min="500" max="10000" step="100" value="3000" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-top"><label>Annual downtime (minutes)</label><span class="slider-val" id="rDownOut">1,200</span></div>
+          <input type="range" id="rDown" min="10" max="5000" step="10" value="1200" />
+        </div>
+        <p style="font-size:12.5px;color:var(--slate-d);margin-top:6px">Model assumes a 72% predictive downtime reduction (±1σ confidence band) and automated diagnostics offloading ~6 technician-hours per rack annually.</p>
+      </div>
+      <div class="roi-out">
+        <div class="lbl">Estimated yearly savings with Sparshika AI Core</div>
+        <div class="roi-big" id="roiTotal">₹0</div>
+        <div class="roi-band" id="roiBand">±1σ confidence: ₹0 – ₹0</div>
+        <div class="roi-meta">
+          <div><span class="mv" id="roiDown">₹0</span><span class="mk">Downtime avoided</span></div>
+          <div><span class="mv" id="roiTech">₹0</span><span class="mk">Technician hours saved</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL B — WEBGL BENCHMARK -->
+<section class="block" id="benchmark">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Panel B · Client Diagnostics</div>
+      <h2>WEBGL CAPABILITY BENCHMARK</h2>
+      <p>Verify that this workstation can render the Sparshika spatial twin at full fidelity. The test queries your live graphics context.</p>
+    </div>
+    <div class="term reveal">
+      <div class="term-bar">
+        <span class="term-dot td-r"></span><span class="term-dot td-y"></span><span class="term-dot td-g"></span>
+        <span class="term-title">sparshika@core — gpu-benchmark</span>
+      </div>
+      <div class="term-body" id="termBody">
+        <div class="term-line tl-dim">// Sparshika WebGL diagnostic console v2.0</div>
+        <div class="term-line tl-dim">// Press “Run benchmark test” to probe this device.</div>
+        <div class="term-line"><span class="tl-prompt">sparshika $</span> <span class="cursor"></span></div>
+      </div>
+      <div class="term-foot">
+        <span class="score-pill" id="scorePill">FPS capability score: —</span>
+        <button class="btn-solid" id="benchBtn" onclick="runBenchmark()" style="padding:12px 24px">RUN BENCHMARK TEST</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL C — STS ECOSYSTEM -->
+<section class="block eco" id="ecosystem">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Panel C · Parent Organization</div>
+      <h2>THE SONI TECH SOLUTIONS ECOSYSTEM</h2>
+      <p>Sparshika is one node in the unified STS telemetry pipeline. Each product hands off cleanly to the next, from ingestion to visualization.</p>
+    </div>
+    <div class="eco-grid reveal" id="ecoGrid"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="infrastructure">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand-link" href="https://soni-tech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer" style="display:inline-block">
+          <div class="sts-row">
+            <div class="sts-mark"><span>STS</span></div>
+            <span class="sts-name">Soni Tech Solutions</span>
+          </div>
+        </a>
+        <p class="foot-desc">The parent architecture powering Sparshika Core. Engineered for absolute precision, scalability, and operational dominance across all digital infrastructure.</p>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#features">Documentation</a></li>
+          <li><a href="#benchmark">API Reference</a></li>
+          <li><a href="#roi">Status Dashboard</a></li>
+          <li><a href="https://soni-tech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer" class="report">
+            <svg class="icon" style="width:16px;height:16px"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Report an Issue</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><button class="legal-btn" onclick="compileLegal('tos')"><svg class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Terms of Service</button></li>
+          <li><button class="legal-btn" onclick="compileLegal('pp')"><svg class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Privacy Policy</button></li>
+          <li><button class="legal-btn" onclick="compileLegal('dpa')"><svg class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Data Processing Addendum</button></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p class="copy">© 2026 STS — Soni Tech Solutions. All rights reserved.</p>
+      <p class="made">Proudly made in India</p>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginOverlay">
+  <div class="overlay-bg" onclick="closeModal()"></div>
+  <div class="modal sm">
+    <button class="modal-x" onclick="closeModal()"><svg class="icon" style="width:20px;height:20px"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="modal-head">
+      <svg class="brand-mark icon" style="color:var(--cyan)" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+      <span class="modal-title">CLIENT PORTAL</span>
+    </div>
+    <form id="loginForm" onsubmit="return authenticate(event)">
+      <div class="field">
+        <label>WORKSPACE ID</label>
+        <div class="field-wrap">
+          <svg class="field-ic" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2M10 6h4M10 10h4M10 14h4M10 18h4"/></svg>
+          <input id="liWorkspace" class="has-ic" type="text" placeholder="e.g. acme-corp" style="font-family:var(--font-mono)" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>ADMINISTRATOR EMAIL</label>
+        <div class="field-wrap">
+          <svg class="field-ic" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input id="liEmail" class="has-ic" type="email" placeholder="admin@company.com" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>ACCESS TOKEN</label>
+        <div class="field-wrap">
+          <svg class="field-ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input id="liToken" class="has-ic" type="password" placeholder="••••••••••••" required />
+        </div>
+      </div>
+      <button class="btn-solid" id="loginBtn" type="submit"><span id="loginLabel">INITIALIZE SESSION</span></button>
+    </form>
+  </div>
 </div>
 
-<div id="hud">
-  <div id="hud-title">SPARSHIKA</div>
-  <div class="hud-row" id="h-cpu-load"><span>CPU Load</span><span>—</span></div>
-  <div class="hud-row" id="h-cpu-temp"><span>CPU Temp</span><span>—</span></div>
-  <div class="hud-row" id="h-fan-rpm" ><span>Fan RPM avg</span><span>—</span></div>
-  <div class="hud-row" id="h-drives"  ><span>Active Drives</span><span>—</span></div>
-  <div class="hud-row" id="h-net"     ><span>Network</span><span>—</span></div>
-  <div class="hud-row" id="h-psu"     ><span>PSU Load</span><span>—</span></div>
-  <div class="hud-row" id="h-anomaly" ><span>Anomalies</span><span>0</span></div>
+<!-- DOWNLOADS CENTER (fullscreen) -->
+<div class="dc" id="downloadCenter">
+  <div class="dc-top">
+    <div class="container">
+      <a class="brand-link" href="https://soni-tech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer">
+        <div class="brand-row">
+          <svg class="brand-mark icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span class="brand-name" style="font-size:20px">SPARSHIKA</span>
+        </div>
+      </a>
+      <div style="display:flex;align-items:center;gap:20px">
+        <div class="dc-user"><div class="dc-avatar" id="dcAvatar">A</div><span id="dcEmail">admin@company.com</span></div>
+        <button class="btn btn-outline" onclick="closeDownloadCenter()">SIGN OUT</button>
+      </div>
+    </div>
+  </div>
+  <div class="dc-main">
+    <div class="container">
+      <div class="dc-hero">
+        <span class="badge"><span class="dot"></span>SESSION AUTHENTICATED · 14-DAY ENTERPRISE TRIAL</span>
+        <h2>Sparshika <b>Enterprise Downloads</b></h2>
+        <p>Your standalone desktop wrapper is provisioned. Download the packaged Core engine for your platform and connect it to your local metric ports.</p>
+      </div>
+      <div class="dl-grid">
+        <!-- Windows -->
+        <div class="dl-card">
+          <div class="dl-os">
+            <div class="dl-os-ic"><svg class="icon"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+            <div><h3>Windows Suite</h3><div class="ver">Standalone package · v2.0.4 · x64</div></div>
+          </div>
+          <div class="dl-file"><span>Sparshika_Core_Setup_x64.exe</span><span class="sz">248.6 MB</span></div>
+          <p class="dl-note">Windows 10/11 · DirectX 12 · 8&nbsp;GB RAM minimum</p>
+          <button class="dl-btn" id="winBtn" onclick="simulateDownload('win')">
+            <svg class="icon" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            DOWNLOAD .EXE
+          </button>
+          <div class="prog" id="winProg">
+            <div class="prog-bar"><div class="prog-fill" id="winFill"></div></div>
+            <div class="prog-meta"><span id="winBytes">0.0 / 248.6 MB</span><span><span id="winSpeed">0.0 MB/s</span> · <span class="pct" id="winPct">0%</span></span></div>
+          </div>
+          <div class="install" id="winInstall">
+            <h4><svg class="icon" style="width:15px;height:15px"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Download complete — install &amp; configure</h4>
+            <ol>
+              <li>Run <code>Sparshika_Core_Setup_x64.exe</code> and approve the UAC prompt.</li>
+              <li>During setup, set the local metric port to <code>:7842</code> (TCP).</li>
+              <li>Launch Sparshika Core, then open <code>Settings → Telemetry</code>.</li>
+              <li>Point the WebSocket endpoint at <code>ws://localhost:7842/stream</code>.</li>
+              <li>Paste your trial token to bind the workspace and start streaming.</li>
+            </ol>
+          </div>
+        </div>
+        <!-- Linux -->
+        <div class="dl-card">
+          <div class="dl-os">
+            <div class="dl-os-ic"><svg class="icon"><path d="M12 2a5 5 0 0 0-5 5c0 2 1 3 1 5 0 1-1 2-2 4-1 2 1 4 6 4s7-2 6-4c-1-2-2-3-2-4 0-2 1-3 1-5a5 5 0 0 0-5-5Z"/><path d="M10 8h.01M14 8h.01"/></svg></div>
+            <div><h3>Linux Suite</h3><div class="ver">Universal package · v2.0.4 · x64</div></div>
+          </div>
+          <div class="dl-file"><span>Sparshika_Core_x64.AppImage</span><span class="sz">271.3 MB</span></div>
+          <p class="dl-note">glibc 2.31+ · OpenGL 4.3 / Vulkan · 8&nbsp;GB RAM minimum</p>
+          <button class="dl-btn" id="linBtn" onclick="simulateDownload('lin')">
+            <svg class="icon" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            DOWNLOAD .APPIMAGE
+          </button>
+          <div class="prog" id="linProg">
+            <div class="prog-bar"><div class="prog-fill" id="linFill"></div></div>
+            <div class="prog-meta"><span id="linBytes">0.0 / 271.3 MB</span><span><span id="linSpeed">0.0 MB/s</span> · <span class="pct" id="linPct">0%</span></span></div>
+          </div>
+          <div class="install" id="linInstall">
+            <h4><svg class="icon" style="width:15px;height:15px"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Download complete — install &amp; configure</h4>
+            <ol>
+              <li>Mark the binary executable: <code>chmod +x Sparshika_Core_x64.AppImage</code></li>
+              <li>Launch it: <code>./Sparshika_Core_x64.AppImage --port 7842</code></li>
+              <li>Allow the local metric port through your firewall (TCP <code>7842</code>).</li>
+              <li>Bind the stream: <code>ws://localhost:7842/stream</code></li>
+              <li>Authenticate with your trial token to activate the workspace.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Live bloom/strength tweak panel -->
-<div id="bloom-ctrl">
-  <label>Bloom Strength <span id="lbl-strength">0.80</span>
-    <input type="range" id="sl-strength" min="0" max="3" step="0.05" value="0.80">
-  </label>
-  <label>Bloom Threshold <span id="lbl-thresh">0.52</span>
-    <input type="range" id="sl-thresh" min="0" max="1" step="0.02" value="0.52">
-  </label>
-  <label>Bloom Radius <span id="lbl-radius">0.55</span>
-    <input type="range" id="sl-radius" min="0" max="1" step="0.02" value="0.55">
-  </label>
-</div>
+<!-- ============================================================
+     FIREBASE CONFIG + INIT (ES module)
+     import.meta.env.VITE_* is resolved at BUILD TIME by Vite.
+     - Under `vite dev` / `vite build`: real values are injected.
+     - Served as a plain static file: import.meta.env is undefined,
+       so we fall back cleanly to standalone demo mode.
+     ============================================================ -->
+<script type="module">
+  // 1 — Reactive env lookup wrapper (safe when Vite is absent)
+  const ENV = (import.meta && import.meta.env) ? import.meta.env : {};
 
-<div id="anomaly-bar"></div>
-<div id="popup"></div>
+  const firebaseConfig = {
+    apiKey:            ENV.VITE_FIREBASE_API_KEY,
+    authDomain:        ENV.VITE_FIREBASE_AUTH_DOMAIN,
+    databaseURL:       ENV.VITE_FIREBASE_DATABASE_URL,
+    projectId:         ENV.VITE_FIREBASE_PROJECT_ID,
+    storageBucket:     ENV.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: ENV.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId:             ENV.VITE_FIREBASE_APP_ID,
+    measurementId:     ENV.VITE_FIREBASE_MEASUREMENT_ID,
+  };
 
-<script type="importmap">
-{
-  "imports": {
-    "three":         "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  // Required keys must all be present & non-empty to attempt a live init
+  const REQUIRED = ['apiKey','authDomain','projectId','appId'];
+  const isConfigured = REQUIRED.every(k => typeof firebaseConfig[k] === 'string' && firebaseConfig[k].length > 0);
+
+  // Shared state the rest of the app reads at click-time
+  const state = {
+    config: firebaseConfig,
+    isConfigured,
+    ready: false,
+    app: null,
+    auth: null,
+    analytics: null,
+    signIn: null,        // () => Promise
+  };
+  window.__SPARSHIKA_FB__ = state;
+
+  if (!isConfigured) {
+    console.info('[Sparshika] Firebase env vars not detected — running in standalone demo mode. ' +
+      'Build this file through Vite (vite dev / vite build) with VITE_FIREBASE_* set to enable live auth.');
+  } else {
+    try {
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+      const { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } =
+        await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+
+      const app  = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
+
+      state.app  = app;
+      state.auth = auth;
+      state.signIn = () => signInAnonymously(auth);
+
+      // Analytics is optional and only valid over http(s) with a measurementId
+      if (firebaseConfig.measurementId && location.protocol.startsWith('http')) {
+        try {
+          const { getAnalytics, isSupported } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js');
+          if (await isSupported()) state.analytics = getAnalytics(app);
+        } catch (_) {}
+      }
+
+      state.ready = true;
+      console.info('[Sparshika] Firebase initialized for project:', firebaseConfig.projectId);
+    } catch (err) {
+      console.warn('[Sparshika] Firebase init failed — continuing in demo mode:', err.message);
+    }
   }
-}
 </script>
 
-<script type="module">
-import * as THREE         from 'three';
-import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
-import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
-import { RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+<script>
+  /* ---------- nav scroll ---------- */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20));
 
-// New visual systems
-import { createComposer } from './src/PostProcessing.js';
-import { setupLighting }  from './src/SceneLighting.js';
-import { RackPopulator }  from './src/RackPopulator.js';
-import { CableSystem }    from './src/CableSystem.js';
-
-
-// ══════════════════════════════════════════════════════════════
-//  CONSTANTS
-// ══════════════════════════════════════════════════════════════
-const U           = 0.04445;
-const RAIL_BASE_Y = 0.075;
-const RACK_H      = 42 * U + 0.15;
-const FAR_LOD     = 4.0;
-
-// ── Rack positions ────────────────────────────────────────────
-// Centre rack (X=0) = full-detail GLB with LEDs & fans
-// Six flanking racks = InstancedMesh via RackPopulator
-const RACK_SPACING = 0.68;
-const SIDE_RACKS   = [-3, -2, -1, 1, 2, 3].map(i => [i * RACK_SPACING, 0, 0]);
-const ALL_RACKS    = [[0, 0, 0], ...SIDE_RACKS];
-
-
-// ══════════════════════════════════════════════════════════════
-//  TELEMETRY GENERATOR
-// ══════════════════════════════════════════════════════════════
-class TelemetryGenerator {
-  constructor() {
-    this._cpuLoad  = 0.20; this._cpuTemp = 28;
-    this._gpuLoad  = 0.10;
-    this._fanRPM   = new Array(8).fill(1800);
-    this._hddIO    = new Float32Array(24);
-    this._nicRx    = new Float32Array(2);
-    this._psuLoad  = 0;
-    this._netState = 0; this._burstMs = 0;
-    this._active   = new Uint8Array(24);
-    this._listeners = []; this._iv = null;
-    this._fc = [[45,1200],[55,2100],[65,3800],[75,5400],[85,7200]];
+  /* ---------- hero racks ---------- */
+  const racks = document.getElementById('racks');
+  for (let r = 0; r < 3; r++) {
+    const rack = document.createElement('div');
+    rack.className = 'rack';
+    for (let i = 0; i < 12; i++) {
+      const u = document.createElement('div');
+      u.className = 'unit';
+      const c1 = Math.random() > 0.3 ? 'led on-cyan l1' : 'led l1';
+      const c2 = Math.random() > 0.5 ? 'led on-blue l2' : 'led l2';
+      u.innerHTML = '<span class="' + c1 + '"></span><span class="' + c2 + '"></span>';
+      rack.appendChild(u);
+    }
+    racks.appendChild(rack);
   }
-  start(ms=500) { if (!this._iv) this._iv = setInterval(()=>this._tick(ms),ms); }
-  onTick(fn) { this._listeners.push(fn); }
-  snapshot() {
-    return {
-      cpuLoad: this._cpuLoad,  cpuTemp: +this._cpuTemp.toFixed(1),
-      gpuLoad: this._gpuLoad,  psuLoad: +this._psuLoad.toFixed(3),
-      fanRPM:  [...this._fanRPM], hddIO: Array.from(this._hddIO),
-      nicRx:   Array.from(this._nicRx),
-      netState: ['IDLE','MODERATE','BURST'][this._netState],
-      net_rx:   this._nicRx[0], net_uplink: Math.max(...this._nicRx),
-      fan_rpm:  this._fanRPM.map(r=>r/7200),
-      hdd_io:   Array.from(this._hddIO),
-      fault:    this._cpuTemp>88?1:0, power:1, status:this._cpuLoad,
-      psu_load: this._psuLoad,
+
+  /* ---------- modal / login gate ---------- */
+  function openModal(){ document.getElementById('loginOverlay').classList.add('show'); document.body.style.overflow = 'hidden'; }
+  function closeModal(){ document.getElementById('loginOverlay').classList.remove('show'); document.body.style.overflow = ''; }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function authenticate(e){
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const label = document.getElementById('loginLabel');
+    if (btn.disabled) return false;
+    btn.disabled = true; btn.style.opacity = '.85';
+    label.innerHTML = '<span style="display:inline-flex;align-items:center;gap:9px"><span class="spinner"></span>AUTHENTICATING…</span>';
+
+    const email = document.getElementById('liEmail').value.trim() || 'admin@company.com';
+    const workspace = document.getElementById('liWorkspace').value.trim();
+    const fb = window.__SPARSHIKA_FB__;
+
+    const reset = () => { btn.disabled = false; btn.style.opacity = '1'; label.textContent = 'INITIALIZE SESSION'; };
+    const grantSession = (mode) => {
+      // log an analytics event if Firebase Analytics initialized
+      if (fb && fb.analytics) {
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js')
+          .then(({ logEvent }) => logEvent(fb.analytics, 'trial_session_start', { workspace, mode }))
+          .catch(() => {});
+      }
+      closeModal();
+      openDownloadCenter(email);
+      reset();
     };
-  }
-  _tick(ms) {
-    const n=(Math.random()-.5)*.04, rv=(0.35-this._cpuLoad)*.03;
-    this._cpuLoad = cl(this._cpuLoad+n+rv, .05, 1);
-    if (Math.random()<.012) this._cpuLoad = cl(this._cpuLoad+.25+Math.random()*.3,.05,1);
-    this._gpuLoad = cl(this._gpuLoad+(Math.random()-.5)*.03,.02,.95);
-    const tTgt=22+(95-22)*(1-Math.exp(-2.8*this._cpuLoad));
-    this._cpuTemp+=.06*(tTgt-this._cpuTemp)+(Math.random()-.5)*.4;
-    const tRPM=this._fanRPM_(this._cpuTemp);
-    for(let i=0;i<8;i++){const j=1+(Math.random()-.5)*.06,d=tRPM*j-this._fanRPM[i];this._fanRPM[i]=cl(this._fanRPM[i]+cl(d,-400,400),0,7400);}
-    for(let i=0;i<24;i++){if(this._active[i]){this._hddIO[i]=cl(this._hddIO[i]+(Math.random()-.4)*.15,0,1);if(Math.random()<.08)this._active[i]=0;}else{if(Math.random()<.03+this._cpuLoad*.07){this._active[i]=1;this._hddIO[i]=.2+Math.random()*.6;}else this._hddIO[i]*=.88;}}
-    this._burstMs=Math.max(0,this._burstMs-ms);
-    if(this._netState===0&&Math.random()<.05){this._netState=Math.random()<.7?1:2;this._burstMs=1000+Math.random()*5000;}
-    else if(this._netState>0&&this._burstMs<=0) this._netState=0;
-    const b=[0,.25,.85][this._netState];
-    for(let i=0;i<2;i++) this._nicRx[i]=cl(b+(Math.random()-.5)*.08,0,1);
-    const cW=this._cpuLoad*185,gW=this._gpuLoad*220,dW=(Array.from(this._hddIO).reduce((a,v)=>a+v,0)/24)*60;
-    this._psuLoad=cl((cW+gW+dW+90)/850,0,1);
-    const s=this.snapshot(); this._listeners.forEach(fn=>{try{fn(s);}catch(e){}});
-  }
-  _fanRPM_(t) {
-    const c=this._fc; if(t<=c[0][0]) return c[0][1];
-    for(let i=1;i<c.length;i++){if(t<=c[i][0]){const a=(t-c[i-1][0])/(c[i][0]-c[i-1][0]);return c[i-1][1]+a*(c[i][1]-c[i-1][1]);}}
-    return c[c.length-1][1];
-  }
-}
 
+    setTimeout(() => { label.textContent = 'HANDSHAKE OK — PROVISIONING'; }, 900);
 
-// ══════════════════════════════════════════════════════════════
-//  LED CONTROLLER
-// ══════════════════════════════════════════════════════════════
-class LEDController {
-  constructor() { this._leds=[]; this._index=new Map(); }
-  register(root) {
-    root.traverse(obj=>{
-      if(!obj.isMesh||!obj.name.endsWith('_LED')) return;
-      const mat=obj.material.clone(); obj.material=mat;
-      const e={mat,base:mat.emissiveIntensity||1,channel:this._ch(obj.name),phase:Math.random()*Math.PI*2,speed:.6+Math.random()*2.8};
-      this._leds.push(e); this._index.set(obj.name,e);
+    setTimeout(() => {
+      // Live path: a configured + initialized Firebase project authorizes the session token.
+      if (fb && fb.ready && typeof fb.signIn === 'function') {
+        label.textContent = 'AUTHORIZING SESSION TOKEN…';
+        fb.signIn()
+          .then(() => grantSession('firebase'))
+          .catch((err) => { console.warn('[Sparshika] Firebase sign-in failed — demo session granted:', err.message); grantSession('fallback'); });
+      } else {
+        // Standalone demo path (no Vite build / no env config present).
+        grantSession('demo');
+      }
+    }, 1700);
+
+    return false;
+  }
+
+  /* ---------- downloads center ---------- */
+  function openDownloadCenter(email){
+    document.getElementById('dcEmail').textContent = email;
+    document.getElementById('dcAvatar').textContent = (email[0] || 'A').toUpperCase();
+    document.getElementById('downloadCenter').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDownloadCenter(){
+    document.getElementById('downloadCenter').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  const DL = {
+    win: { total: 248.6, btn: 'winBtn', prog: 'winProg', fill: 'winFill', bytes: 'winBytes', speed: 'winSpeed', pct: 'winPct', install: 'winInstall', label: 'DOWNLOAD .EXE' },
+    lin: { total: 271.3, btn: 'linBtn', prog: 'linProg', fill: 'linFill', bytes: 'linBytes', speed: 'linSpeed', pct: 'linPct', install: 'linInstall', label: 'DOWNLOAD .APPIMAGE' }
+  };
+  function simulateDownload(k){
+    const c = DL[k];
+    const btn = document.getElementById(c.btn);
+    if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = 'DOWNLOADING…';
+    document.getElementById(c.prog).classList.add('show');
+    document.getElementById(c.install).classList.remove('show');
+    let done = 0;
+    const tick = setInterval(() => {
+      const speed = 5 + Math.random() * 9;           // MB per ~120ms burst
+      done = Math.min(c.total, done + speed);
+      const pct = Math.round((done / c.total) * 100);
+      document.getElementById(c.fill).style.width = pct + '%';
+      document.getElementById(c.bytes).textContent = done.toFixed(1) + ' / ' + c.total.toFixed(1) + ' MB';
+      document.getElementById(c.speed).textContent = (speed * 8).toFixed(1) + ' MB/s';
+      document.getElementById(c.pct).textContent = pct + '%';
+      if (done >= c.total){
+        clearInterval(tick);
+        document.getElementById(c.speed).textContent = 'done';
+        document.getElementById(c.install).classList.add('show');
+        btn.textContent = '✓ DOWNLOADED — RE-DOWNLOAD';
+        btn.disabled = false;
+        btn.onclick = () => { document.getElementById(c.fill).style.width = '0%'; btn.textContent = c.label; simulateDownload(k); };
+      }
+    }, 120);
+  }
+
+  /* ---------- Panel A: ROI calculator ---------- */
+  const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const rRacks = document.getElementById('rRacks'), rRate = document.getElementById('rRate'), rDown = document.getElementById('rDown');
+  function calcROI(){
+    const racksN = +rRacks.value, rate = +rRate.value, down = +rDown.value;
+    document.getElementById('rRacksOut').textContent = racksN;
+    document.getElementById('rRateOut').textContent = inr(rate);
+    document.getElementById('rDownOut').textContent = down.toLocaleString('en-IN');
+    const reduction = 0.72;
+    const costPerMin = racksN * 85;                     // business impact per rack per downtime minute
+    const downSavings = down * reduction * costPerMin;  // avoided downtime cost
+    const techHours = racksN * 6;                        // diagnostic hours offloaded per rack/yr
+    const techSavings = techHours * rate;
+    const total = downSavings + techSavings;
+    const sigma = total * 0.14;                          // ±1σ confidence band
+    document.getElementById('roiTotal').textContent = inr(total);
+    document.getElementById('roiBand').textContent = '±1σ confidence: ' + inr(total - sigma) + ' – ' + inr(total + sigma);
+    document.getElementById('roiDown').textContent = inr(downSavings);
+    document.getElementById('roiTech').textContent = techHours.toLocaleString('en-IN') + ' hrs';
+  }
+  [rRacks, rRate, rDown].forEach(s => s.addEventListener('input', calcROI));
+  calcROI();
+
+  /* ---------- Panel B: WebGL benchmark ---------- */
+  function termLine(html){
+    const body = document.getElementById('termBody');
+    const cur = body.querySelector('.cursor');
+    if (cur) cur.parentElement.remove();
+    const d = document.createElement('div'); d.className = 'term-line'; d.innerHTML = html; body.appendChild(d);
+    const p = document.createElement('div'); p.className = 'term-line'; p.innerHTML = '<span class="tl-prompt">sparshika $</span> <span class="cursor"></span>'; body.appendChild(p);
+    body.scrollTop = body.scrollHeight;
+  }
+  function runBenchmark(){
+    const btn = document.getElementById('benchBtn');
+    btn.disabled = true; btn.style.opacity = '.6'; btn.textContent = 'PROBING…';
+    document.getElementById('termBody').innerHTML = '<div class="term-line tl-dim">// initializing WebGL diagnostic context…</div><div class="term-line"><span class="tl-prompt">sparshika $</span> <span class="cursor"></span></div>';
+
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const steps = [];
+    if (!gl){
+      steps.push(['warn', 'WebGL unavailable — falling back to software raster']);
+    } else {
+      const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+      const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+      const ver = gl.getParameter(gl.VERSION);
+      const glsl = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+      const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      const maxRB = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+      const maxVA = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+      const maxVU = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+      steps.push(['kv', 'GPU vendor', vendor]);
+      steps.push(['kv', 'Renderer', renderer]);
+      steps.push(['kv', 'GL version', ver]);
+      steps.push(['kv', 'GLSL version', glsl]);
+      steps.push(['kv', 'Max texture size', maxTex + ' × ' + maxTex + ' px']);
+      steps.push(['kv', 'Max renderbuffer', maxRB + ' px']);
+      steps.push(['kv', 'Vertex attribs', String(maxVA)]);
+      steps.push(['kv', 'Vertex uniforms', String(maxVU)]);
+    }
+
+    let i = 0;
+    const feed = setInterval(() => {
+      if (i >= steps.length){
+        clearInterval(feed);
+        measureFPS();
+        return;
+      }
+      const [type, k, v] = steps[i++];
+      if (type === 'warn') termLine('<span class="tl-warn">⚠ ' + k + '</span>');
+      else termLine('<span class="tl-key">' + k + ':</span> <span class="tl-val">' + String(v).replace(/</g,'&lt;') + '</span>');
+    }, 230);
+
+    function measureFPS(){
+      termLine('<span class="tl-dim">running render stress loop (1.2s)…</span>');
+      let frames = 0; const start = performance.now();
+      function loop(now){
+        frames++;
+        if (now - start < 1200){ requestAnimationFrame(loop); }
+        else {
+          const fps = Math.round(frames / ((now - start) / 1000));
+          const score = Math.min(100, Math.round(fps * 1.55));
+          let grade = score >= 85 ? 'ELITE' : score >= 60 ? 'CAPABLE' : score >= 35 ? 'LIMITED' : 'INSUFFICIENT';
+          termLine('<span class="tl-key">Sustained FPS:</span> <span class="tl-val">' + fps + ' fps</span>');
+          termLine('<span class="tl-key">FPS capability score:</span> <span class="tl-ok">' + score + ' / 100 · ' + grade + '</span>');
+          termLine('<span class="tl-ok">✓ diagnostic complete — workstation ' + (score >= 35 ? 'cleared for spatial twin' : 'below recommended fidelity') + '</span>');
+          document.getElementById('scorePill').textContent = 'FPS capability score: ' + score + ' / 100';
+          btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'RE-RUN BENCHMARK';
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+  }
+
+  /* ---------- Panel C: STS ecosystem ---------- */
+  const ECO = [
+    { name: 'STS Sentinel', tag: 'Ingestion Layer', grad: 'linear-gradient(135deg,#0ea5e9,#2563eb)',
+      ic: '<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+      desc: 'Edge agents that collect raw rack telemetry — power, thermals, fan RPM — and stream it upstream with sub-50ms latency.' },
+    { name: 'Sparshika Core', tag: 'Visualization · You are here', grad: 'linear-gradient(135deg,#06b6d4,#3b82f6)',
+      ic: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+      desc: 'The spatial digital twin. Renders the live fleet in WebGL and surfaces anomalies as emissive, interactive 3D events.' },
+    { name: 'STS Forecast', tag: 'Prediction Layer', grad: 'linear-gradient(135deg,#8b5cf6,#7e22ce)',
+      ic: '<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/>',
+      desc: 'The AI anomaly engine. Standard-deviation modeling that predicts hardware failure windows before alarms ever fire.' },
+    { name: 'STS Vault', tag: 'Storage Layer', grad: 'linear-gradient(135deg,#10b981,#0d9488)',
+      ic: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+      desc: 'Encrypted time-series archive for compliance replay. Telemetry is retained only as long as your retention policy allows.' },
+    { name: 'STS Bridge', tag: 'Integration Layer', grad: 'linear-gradient(135deg,#f59e0b,#d97706)',
+      ic: '<path d="M6 12h12M3 12a3 3 0 0 1 3-3M21 12a3 3 0 0 0-3-3M6 9V6M18 9V6M6 15v3M18 15v3"/>',
+      desc: 'Prebuilt connectors for Prometheus, Grafana, and Datadog so Sparshika slots into your existing observability stack.' },
+    { name: 'STS Console', tag: 'Control Layer', grad: 'linear-gradient(135deg,#ec4899,#be185d)',
+      ic: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4M6 7h.01M6 11h6"/>',
+      desc: 'Unified admin plane for the whole ecosystem — provision workspaces, manage tokens, and govern access across products.' }
+  ];
+  const ecoGrid = document.getElementById('ecoGrid');
+  ECO.forEach(p => {
+    const a = document.createElement('a');
+    a.href = 'https://soni-tech-solutions.vercel.app/';
+    a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.className = 'eco-card' + (p.tag.includes('here') ? ' active' : '');
+    a.innerHTML =
+      '<div class="eco-ic" style="background:' + p.grad + '"><svg class="icon" viewBox="0 0 24 24" style="width:24px;height:24px">' + p.ic + '</svg></div>' +
+      '<h3>' + p.name + '</h3>' +
+      '<p>' + p.desc + '</p>' +
+      '<span class="eco-tag">' + p.tag + '</span>' +
+      '<span class="eco-link">Explore in STS ecosystem <svg class="icon" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></svg></span>';
+    ecoGrid.appendChild(a);
+  });
+
+  /* ---------- Legal PDF compiler (jsPDF) ---------- */
+  const LEGAL = {
+    tos: {
+      file: 'Sparshika_Terms_Of_Service.pdf',
+      title: 'Terms of Service',
+      sections: [
+        ['1. Acceptance of Terms', 'These Terms of Service ("Terms") govern access to and use of the Sparshika Core platform, desktop application wrappers, APIs, and related services (collectively, the "Service"), operated by Soni Tech Solutions ("STS", "we", "us"). By creating a workspace, downloading the desktop suite, or otherwise using the Service, the customer ("you") agrees to be bound by these Terms. If you do not agree, you may not use the Service.'],
+        ['2. The Service', 'Sparshika Core provides a spatial digital-twin visualization environment for datacenter telemetry. The Service ingests operational metrics supplied by you and renders them as interactive simulations. The Service is provided on a subscription or trial basis as described in your order.'],
+        ['3. Accounts and Access Tokens', 'You are responsible for safeguarding your workspace identifiers, administrator credentials, and access tokens. You must notify STS promptly of any unauthorized use. You are responsible for all activity occurring under your workspace, whether or not authorized by you.'],
+        ['4. Acceptable Use', 'You agree not to: (a) reverse engineer, decompile, or attempt to extract source code except where permitted by law; (b) resell or sublicense the Service without written consent; (c) use the Service to store or transmit unlawful content; or (d) interfere with the integrity or performance of the Service or the underlying STS infrastructure.'],
+        ['5. Trial Licenses', 'Trial workspaces are provided for evaluation only, are time-limited, and may carry feature, rack-count, or telemetry-volume restrictions. STS may modify or terminate any trial at its discretion.'],
+        ['6. Fees and Billing', 'Paid plans are billed in advance according to the tier selected at provisioning (Startup, Enterprise, or Hyperscale). All fees are stated in Indian Rupees (INR) unless otherwise agreed and are non-refundable except where required by law.'],
+        ['7. Intellectual Property', 'The Service, including all software, models, and visual designs, is and remains the exclusive property of Soni Tech Solutions and its licensors. These Terms grant you a limited, non-exclusive, non-transferable right to use the Service during your subscription term. Your telemetry data remains yours.'],
+        ['8. Disclaimer of Warranties', 'The Service is provided "as is" and "as available" without warranties of any kind, whether express or implied, including fitness for a particular purpose. STS does not warrant that anomaly predictions will identify every fault or that the Service will be uninterrupted or error-free.'],
+        ['9. Limitation of Liability', 'To the maximum extent permitted by law, STS shall not be liable for any indirect, incidental, or consequential damages, or for loss of profits or data, arising from use of the Service. Aggregate liability shall not exceed the fees paid by you in the twelve months preceding the claim.'],
+        ['10. Termination', 'Either party may terminate for material breach not cured within thirty (30) days of notice. Upon termination, your right to use the Service ceases and STS may delete workspace data in accordance with the Data Processing Addendum.'],
+        ['11. Governing Law', 'These Terms are governed by the laws of India, and the courts at Surat, Gujarat shall have exclusive jurisdiction, without regard to conflict-of-law principles.'],
+        ['12. Changes to Terms', 'STS may update these Terms from time to time. Material changes will be communicated through the workspace console. Continued use after changes take effect constitutes acceptance.'],
+        ['13. Contact', 'Questions regarding these Terms may be directed to Soni Tech Solutions through the support channels listed within your workspace console.']
+      ]
+    },
+    pp: {
+      file: 'Sparshika_Privacy_Policy.pdf',
+      title: 'Privacy Policy',
+      sections: [
+        ['1. Introduction', 'This Privacy Policy explains how Soni Tech Solutions ("STS") collects, uses, and protects information when you use the Sparshika Core platform and desktop application. We are committed to handling data responsibly and transparently.'],
+        ['2. Information We Collect', 'We collect: (a) account information such as workspace identifiers and administrator email; (b) operational telemetry you choose to stream, including rack metrics, thermal arrays, and network throughput; (c) technical diagnostics such as browser type and graphics capability gathered during benchmarking; and (d) usage analytics describing how features are accessed.'],
+        ['3. How We Use Information', 'Information is used to operate and secure the Service, render your digital twin, generate anomaly predictions, provide support, and improve product performance. We do not sell personal information.'],
+        ['4. Operational Telemetry', 'Operational telemetry is processed transiently to power live visualization. Sparshika Core does not permanently log or store operational telemetry beyond the retention window defined in your Data Processing Addendum unless you explicitly enable archival through STS Vault.'],
+        ['5. Cookies and Local Storage', 'The web console uses essential cookies and local browser storage to maintain sessions and preferences. You may control these through your browser settings; disabling essential storage may limit functionality.'],
+        ['6. Data Sharing', 'We share information only with: (a) infrastructure subprocessors under contract; (b) authorities where required by law; and (c) successors in the event of a merger or acquisition, subject to this Policy. Each subprocessor is bound by confidentiality and security obligations.'],
+        ['7. Security', 'We apply administrative, technical, and physical safeguards including encryption in transit, access controls, and least-privilege provisioning. No method of transmission is perfectly secure, and we cannot guarantee absolute security.'],
+        ['8. Your Rights', 'Subject to applicable law, you may request access to, correction of, or deletion of personal information, and may object to certain processing. Requests can be raised through the workspace console.'],
+        ['9. Data Retention', 'Account information is retained for the duration of your subscription and a reasonable period thereafter for legal and accounting purposes. Telemetry retention follows your configured policy.'],
+        ['10. International Transfers', 'Where data is processed outside your country, we apply appropriate safeguards consistent with applicable data-protection law.'],
+        ['11. Children', 'The Service is intended for enterprise use and is not directed to individuals under the age of 18. We do not knowingly collect information from minors.'],
+        ['12. Changes to this Policy', 'We may revise this Policy periodically. Material changes will be notified through the console. The effective date reflects the latest revision.'],
+        ['13. Contact', 'For privacy enquiries, contact the Soni Tech Solutions data team through the support channels in your workspace console.']
+      ]
+    },
+    dpa: {
+      file: 'Sparshika_Data_Processing_Addendum.pdf',
+      title: 'Data Processing Addendum',
+      sections: [
+        ['1. Scope and Roles', 'This Data Processing Addendum ("DPA") forms part of the agreement between the customer ("Controller") and Soni Tech Solutions ("Processor") for the Sparshika Core Service. It applies where STS processes personal data on the Controller\u2019s behalf.'],
+        ['2. Definitions', '"Personal Data", "Processing", "Data Subject", "Controller", and "Processor" carry the meanings given under applicable data-protection law. "Telemetry" means operational metrics streamed by the Controller through the Service.'],
+        ['3. Processing Instructions', 'STS shall process personal data only on documented instructions from the Controller, including with regard to transfers, unless required to do otherwise by law. The subject matter is the provision of digital-twin visualization and anomaly detection.'],
+        ['4. Confidentiality', 'STS ensures that personnel authorized to process personal data are bound by confidentiality obligations and receive appropriate data-protection training.'],
+        ['5. Security Measures', 'STS implements appropriate technical and organizational measures, including encryption in transit, network segmentation, access logging, least-privilege controls, and regular security review, to protect personal data against unauthorized access, loss, or alteration.'],
+        ['6. Subprocessors', 'The Controller authorizes STS to engage subprocessors for hosting and infrastructure. STS maintains a current list of subprocessors and imposes data-protection obligations no less protective than this DPA. STS remains liable for subprocessor performance.'],
+        ['7. Data Subject Requests', 'Taking into account the nature of processing, STS shall assist the Controller by appropriate measures in responding to requests from data subjects to exercise their rights, insofar as possible.'],
+        ['8. Personal Data Breach', 'STS shall notify the Controller without undue delay after becoming aware of a personal data breach affecting the Controller\u2019s data, and shall provide information reasonably required to meet the Controller\u2019s notification obligations.'],
+        ['9. Telemetry Handling', 'Operational telemetry is processed transiently for live visualization and is not retained beyond the agreed retention window unless archival is explicitly enabled. Retention defaults and limits are configurable in the workspace console.'],
+        ['10. Return and Deletion', 'Upon termination, STS shall, at the Controller\u2019s choice, delete or return personal data and delete existing copies, unless retention is required by law.'],
+        ['11. Audits', 'STS shall make available information reasonably necessary to demonstrate compliance with this DPA and allow for audits, subject to reasonable notice and confidentiality safeguards.'],
+        ['12. International Transfers', 'Where processing involves a cross-border transfer, the parties shall implement a lawful transfer mechanism consistent with applicable law.'],
+        ['13. Governing Law', 'This DPA is governed by the laws of India and is subject to the same jurisdiction clause as the principal agreement.']
+      ]
+    }
+  };
+
+  function compileLegal(key){
+    if (!(window.jspdf && window.jspdf.jsPDF)){ alert('PDF engine still loading — please retry in a moment.'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const data = LEGAL[key];
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 56;
+    const maxW = pageW - margin * 2;
+    let y = margin;
+
+    function ensure(space){ if (y + space > pageH - margin){ doc.addPage(); y = margin; drawHeaderBar(false); } }
+
+    function drawHeaderBar(first){
+      doc.setFillColor(6, 17, 40);
+      doc.rect(0, 0, pageW, 38, 'F');
+      doc.setFillColor(6, 182, 212);
+      doc.rect(0, 38, pageW, 2, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text('SONI TECH SOLUTIONS', margin, 24);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.setTextColor(34, 211, 238);
+      doc.text('SPARSHIKA CORE', pageW - margin, 24, { align: 'right' });
+      if (first) y = 78; else y = 70;
+    }
+
+    drawHeaderBar(true);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
+    doc.text(data.title, margin, y); y += 26;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Sparshika Core, a product of Soni Tech Solutions  ·  Effective 10 June 2026  ·  Version 2.0', margin, y); y += 14;
+    doc.setDrawColor(203, 213, 225); doc.line(margin, y, pageW - margin, y); y += 22;
+
+    data.sections.forEach(([heading, body]) => {
+      ensure(40);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5);
+      doc.setTextColor(12, 74, 110);
+      doc.text(heading, margin, y); y += 16;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      const lines = doc.splitTextToSize(body, maxW);
+      lines.forEach(line => { ensure(15); doc.text(line, margin, y); y += 14.5; });
+      y += 12;
     });
-  }
-  update(t,snap) { for(const e of this._leds) e.mat.emissiveIntensity=this._i(this._r(e,snap),t,e); }
-  _ch(n) {
-    if(/^HDD_\d+_LED$/.test(n))          return 'hdd_io';
-    if(/^Switch_Port_\d+_LED$/.test(n))  return 'net_rx';
-    if(/^Switch_SFP_\d+_LED$/.test(n))   return 'net_uplink';
-    if(/^PSU_[LR]_LED$/.test(n))         return 'psu_load';
-    if(/^Fan_\d+_Fault_LED$/.test(n))    return 'fan_rpm';
-    if(/Fault_LED$/.test(n))             return 'fault';
-    if(/Power_LED$/.test(n))             return 'power';
-    if(/^NIC_[LR]_LED$/.test(n))         return 'net_rx';
-    return 'status';
-  }
-  _r(e,s) { const v=s[e.channel]; return cl(Array.isArray(v)?v[0]??0:v??0,0,1); }
-  _i(load,t,{base,channel,phase,speed}) {
-    const p=phase+t*speed;
-    if(channel==='power') return base*(.92+.08*Math.sin(p*1.3));
-    if(channel==='fault'&&load>.5){const c=((p%(Math.PI*2))/(Math.PI*2)),b1=Math.exp(-80*(c-.15)**2),b2=Math.exp(-80*(c-.30)**2)*.55;return base*Math.min(1,b1+b2+.04);}
-    if(load<=0) return base*.04;
-    if(load<=.30) return base*(.15+load*2.8);
-    if(load<=.70) return base*(.65+.35*Math.sin(p*(.8+load*3.5)));
-    const v=Math.sin(p*(4+load*14))*Math.cos(p*(4+load*14)*.43);
-    return base*(v>(1-(0.3+load*.65)*2)?1.0:.08);
-  }
-}
 
-
-// ══════════════════════════════════════════════════════════════
-//  ANOMALY ENGINE
-// ══════════════════════════════════════════════════════════════
-class AnomalyEngine {
-  constructor(){this._ch=new Map();this._cbs=[];this._log=[];this._total=0;}
-  onAnomaly(fn){this._cbs.push(fn);}
-  totalCount(){return this._total;}
-  ingest(snap){
-    const flat={};
-    const p=(k,v)=>{if(typeof v==='number')flat[k]=v;};
-    p('cpuLoad',snap.cpuLoad);p('cpuTemp',snap.cpuTemp);p('psuLoad',snap.psuLoad);
-    snap.fanRPM.forEach((v,i)=>p(`fan${i}`,v));
-    snap.hddIO?.forEach((v,i)=>p(`hdd${i}`,v));
-    for(const[k,v]of Object.entries(flat)){
-      const e=this._e(k);e.n++;const d=v-e.mean;e.mean+=d/e.n;e.M2+=d*(v-e.mean);
-      const s=e.n>1?Math.sqrt(e.M2/(e.n-1)):0;e.prev=v;
-      if(e.n<20||s<1e-9)continue;
-      const z=Math.abs(v-e.mean)/s;
-      if(z>3&&Date.now()-e.lastAlert>4000){
-        e.lastAlert=Date.now();this._total++;
-        const ev={id:k,value:+v.toFixed(3),z:+z.toFixed(2),severity:z>6?'CRITICAL':'WARNING',ts:new Date().toLocaleTimeString()};
-        this._log.push(ev);if(this._log.length>100)this._log.shift();
-        this._cbs.forEach(fn=>{try{fn(ev);}catch(e){}});
-      }
+    const total = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= total; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text('© 2026 Soni Tech Solutions — Confidential. This is a template document and not a substitute for legal advice.', margin, pageH - 26);
+      doc.text('Page ' + p + ' of ' + total, pageW - margin, pageH - 26, { align: 'right' });
     }
+
+    doc.save(data.file);
   }
-  _e(k){if(!this._ch.has(k))this._ch.set(k,{n:0,mean:0,M2:0,prev:0,lastAlert:0});return this._ch.get(k);}
-}
 
-
-// ══════════════════════════════════════════════════════════════
-//  LOD RAYCASTER
-// ══════════════════════════════════════════════════════════════
-class LoDRaycaster {
-  constructor(camera,renderer,telem){
-    this._camera=camera;this._renderer=renderer;this._telem=telem;
-    this._ray=new THREE.Raycaster();this._far=[];this._near=[];
-    this._popup=document.getElementById('popup');this._active=null;
-  }
-  addFarTarget(m){this._far.push(m);}
-  addNearTargets(a){this._near.push(...a);}
-  update(ndc){
-    this._ray.setFromCamera(ndc,this._camera);
-    this._camera.position.length()>FAR_LOD?this._castFar():this._castNear();
-  }
-  hide(){this._popup.style.display='none';this._active=null;}
-  _castFar(){
-    const h=this._ray.intersectObjects(this._far,false);
-    if(!h.length){this.hide();return;}
-    const id=h[0].object.userData.rackId||'Rack-A';
-    if(id===this._active)return;this._active=id;
-    const s=this._telem.snapshot();
-    const ad=s.hddIO?.filter(v=>v>.05).length??0;
-    this._show(h[0].point,[['Rack',id],['Total Power',`${Math.round(s.psuLoad*850)} W`],['CPU Temp',`${s.cpuTemp} °C`],['Active Drives',`${ad}/24`],['Net',s.netState]],'far');
-  }
-  _castNear(){
-    const h=this._ray.intersectObjects(this._near,true);
-    if(!h.length){this.hide();return;}
-    const name=h[0].object.name;
-    if(name===this._active)return;this._active=name;
-    const s=this._telem.snapshot();
-    const hM=name.match(/^HDD_(\d+)_LED$/),fM=name.match(/^Fan_(\d+)_Fault_LED$/),pM=name.match(/^PSU_([LR])_LED$/),nM=name.match(/^NIC_([LR])_LED$/);
-    let rows;
-    if(hM){const io=(s.hddIO?.[parseInt(hM[1])-1]??0)*600;rows=[['Drive',`HDD ${hM[1]}`],['I/O',`${io.toFixed(0)} MB/s`],['State',io>5?'ACTIVE':'IDLE']];}
-    else if(fM){const rpm=s.fanRPM?.[parseInt(fM[1])-1]??0;rows=[['Fan',`SysFan ${fM[1]}`],['RPM',`${Math.round(rpm)}`],['State',rpm<500?'⚠ FAULT':'OK']];}
-    else if(pM){rows=[['PSU',pM[1]==='L'?'Left':'Right'],['Load',`${(s.psuLoad*100).toFixed(0)}%`],['Output',`${(s.psuLoad*750).toFixed(0)} W`]];}
-    else if(nM){const i=nM[1]==='L'?0:1;rows=[['NIC',`Port ${i+1}`],['RX',`${((s.nicRx?.[i]??0)*25).toFixed(1)} Gbps`]];}
-    else rows=[['Object',name||'—'],['CPU',`${(s.cpuLoad*100).toFixed(0)}%`]];
-    this._show(h[0].point,rows,'near');
-  }
-  _show(wp,rows,mode){
-    const v=wp.clone().project(this._camera);
-    const el=this._renderer.domElement;
-    this._popup.style.left=`${(v.x*.5+.5)*el.clientWidth+14}px`;
-    this._popup.style.top=`${(-v.y*.5+.5)*el.clientHeight-14}px`;
-    this._popup.style.display='block';this._popup.dataset.mode=mode;
-    this._popup.innerHTML=rows.map(([l,v])=>`<div class="pop-row"><span class="pop-label">${l}</span><span class="pop-value">${v}</span></div>`).join('');
-  }
-}
-
-
-// ══════════════════════════════════════════════════════════════
-//  SCENE BOOTSTRAP
-// ══════════════════════════════════════════════════════════════
-const scene    = new THREE.Scene();
-scene.background = new THREE.Color(0x080c14);
-scene.fog = new THREE.FogExp2(0x080c14, 0.055);
-
-const RACK_MID = RAIL_BASE_Y + (42*U)/2;
-const camera   = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.01, 40);
-camera.position.set(0, RACK_MID, 3.5);   // centred on full row
-
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
-// toneMapping + outputColorSpace handled by OutputPass — do NOT set here
-document.body.appendChild(renderer.domElement);
-
-// ── Environment map (needed for glass door reflections) ───────
-const pmrem   = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-pmrem.dispose();
-
-// ── Orbit controls ─────────────────────────────────────────────
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, RACK_MID, 0);
-controls.enableDamping  = true;
-controls.dampingFactor  = 0.07;
-controls.minDistance    = 0.3;
-controls.maxDistance    = 12;
-controls.maxPolarAngle  = Math.PI * 0.88;
-controls.update();
-
-// ── Floor grid + plane ─────────────────────────────────────────
-const floorMat  = new THREE.MeshStandardMaterial({ color:0x0a0e16, roughness:0.92, metalness:0.08 });
-const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(16, 12), floorMat);
-floorMesh.rotation.x = -Math.PI/2; floorMesh.position.y=-0.002; floorMesh.receiveShadow=true;
-scene.add(floorMesh);
-// Raised-floor tile pattern grid
-scene.add(new THREE.GridHelper(16, 64, 0x1a2840, 0x0f1a28));
-
-// ── Invisible rack bounding volume for far-LoD hits ───────────
-const rackBound = new THREE.Mesh(
-  new THREE.BoxGeometry(RACK_SPACING * ALL_RACKS.length, RACK_H + 0.15, 0.80),
-  new THREE.MeshBasicMaterial({ visible: false })
-);
-rackBound.position.set(0, (RACK_H+0.15)/2, 0);
-rackBound.userData.rackId = 'Row-A';
-scene.add(rackBound);
-
-// ── Post-processing ────────────────────────────────────────────
-const { composer, bloom } = createComposer(renderer, scene, camera);
-
-// ── Industrial lighting (replaces old moody setup) ────────────
-setupLighting(scene, ALL_RACKS);
-
-// ── Surrounding racks (InstancedMesh — memory efficient) ──────
-const populator = new RackPopulator(scene, SIDE_RACKS);
-
-// ── Cable tray + glow cables ───────────────────────────────────
-const cables = new CableSystem(scene, ALL_RACKS, { cablesPerRack: 10 });
-
-// ── Live bloom slider controls ─────────────────────────────────
-document.getElementById('sl-strength').addEventListener('input', e => {
-  bloom.strength = parseFloat(e.target.value);
-  document.getElementById('lbl-strength').textContent = e.target.value;
-});
-document.getElementById('sl-thresh').addEventListener('input', e => {
-  bloom.threshold = parseFloat(e.target.value);
-  document.getElementById('lbl-thresh').textContent = e.target.value;
-});
-document.getElementById('sl-radius').addEventListener('input', e => {
-  bloom.radius = parseFloat(e.target.value);
-  document.getElementById('lbl-radius').textContent = e.target.value;
-});
-
-
-// ══════════════════════════════════════════════════════════════
-//  LIVE SYSTEMS
-// ══════════════════════════════════════════════════════════════
-const telem   = new TelemetryGenerator();
-const leds    = new LEDController();
-const anomaly = new AnomalyEngine();
-const lod     = new LoDRaycaster(camera, renderer, telem);
-const clock   = new THREE.Clock();
-const mixers  = [];
-
-lod.addFarTarget(rackBound);
-telem.onTick(snap => anomaly.ingest(snap));
-
-let anomalyCount = 0;
-anomaly.onAnomaly(ev => {
-  anomalyCount++;
-  const bar = document.getElementById('anomaly-bar');
-  bar.style.display = 'block';
-  bar.textContent = `⚠  ${ev.ts}  ${ev.severity}  ${ev.id} = ${ev.value}  (z=${ev.z}σ)`;
-  setTimeout(() => { bar.style.display='none'; }, 6000);
-  hudRow('h-anomaly', 'Anomalies', anomalyCount, 'warn');
-});
-
-telem.onTick(snap => {
-  const cl_ = snap.cpuLoad, t_ = snap.cpuTemp;
-  hudRow('h-cpu-load','CPU Load',    `${(cl_*100).toFixed(0)}%`,  cl_>.85?'crit':cl_>.65?'warn':'ok');
-  hudRow('h-cpu-temp','CPU Temp',    `${t_}°C`,                   t_>85?'crit':t_>70?'warn':'ok');
-  hudRow('h-fan-rpm', 'Fan RPM avg', `${Math.round(snap.fanRPM.reduce((a,v)=>a+v,0)/8)} RPM`,'');
-  hudRow('h-drives',  'Active Drives',`${snap.hddIO.filter(v=>v>.05).length} / 24`,'');
-  hudRow('h-net',     'Network',     snap.netState, snap.netState==='BURST'?'warn':'');
-  hudRow('h-psu',     'PSU Load',    `${(snap.psuLoad*100).toFixed(0)}%`, snap.psuLoad>.85?'warn':'ok');
-  populator.updatePanels(SIDE_RACKS.map(()=>snap.cpuLoad));
-});
-
-
-// ══════════════════════════════════════════════════════════════
-//  GLB LOADER  (centre rack — detailed with LEDs & fan clips)
-// ══════════════════════════════════════════════════════════════
-function setStatus(msg) { document.getElementById('overlay-status').textContent = msg; }
-function setProgress(pct) { document.getElementById('progress-bar').style.width = pct+'%'; }
-function showError(msg) {
-  const el = document.getElementById('overlay-error');
-  el.style.display='block'; el.textContent='⚠  '+msg;
-}
-
-function normalizeAndPlace(obj, isRack, uSlot=1) {
-  scene.add(obj); obj.updateMatrixWorld(true);
-  const box3=new THREE.Box3().setFromObject(obj);
-  const ctr=new THREE.Vector3(); box3.getCenter(ctr);
-  obj.position.x -= ctr.x; obj.position.z -= ctr.z;
-  obj.position.y += isRack ? -box3.min.y : (RAIL_BASE_Y+(uSlot-1)*U)-box3.min.y;
-  obj.updateMatrixWorld(true);
-  obj.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
-}
-
-// Centre rack GLBs: [path, uSlot, isRack, optional]
-const MODELS = [
-  ['models/Rack_42U_Chassis.glb',        0,  true,  true ],
-  ['models/DellStyle_ServerChassis.glb', 20, false, false],
-  ['models/DellStyle_NetworkSwitch.glb',  5, false, false],
-  ['models/DellStyle_StorageBay.glb',    10, false, false],
-];
-
-async function loadAll() {
-  const loader = new GLTFLoader();
-  for (let i=0; i<MODELS.length; i++) {
-    const [path, uSlot, isRack, optional] = MODELS[i];
-    setStatus(`Loading ${path.split('/').pop().replace('.glb','')}...`);
-    try {
-      const gltf = await loader.loadAsync(path);
-      if (gltf.animations.length) {
-        const mx = new THREE.AnimationMixer(gltf.scene);
-        gltf.animations.forEach(c => mx.clipAction(c).play());
-        mixers.push(mx);
-      }
-      normalizeAndPlace(gltf.scene, isRack, uSlot);
-      leds.register(gltf.scene);
-      const meshes=[]; gltf.scene.traverse(o=>{ if(o.isMesh) meshes.push(o); });
-      lod.addNearTargets(meshes);
-    } catch (err) {
-      if (!optional) showError(`Failed: ${err.message}`);
-      else console.warn('Optional not found:', path);
-    }
-    setProgress(((i+1)/MODELS.length)*100);
-  }
-  const ov=document.getElementById('overlay');
-  ov.style.transition='opacity .5s'; ov.style.opacity='0';
-  setTimeout(()=>ov.style.display='none', 520);
-  telem.start();
-}
-loadAll();
-
-
-// ══════════════════════════════════════════════════════════════
-//  POINTER
-// ══════════════════════════════════════════════════════════════
-const ndc={x:0,y:0};
-renderer.domElement.addEventListener('pointermove',e=>{
-  const r=renderer.domElement.getBoundingClientRect();
-  ndc.x=((e.clientX-r.left)/r.width)*2-1;
-  ndc.y=-((e.clientY-r.top)/r.height)*2+1;
-});
-renderer.domElement.addEventListener('pointerleave',()=>lod.hide());
-
-
-// ══════════════════════════════════════════════════════════════
-//  RESIZE
-// ══════════════════════════════════════════════════════════════
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-  // composer resize handled internally in PostProcessing.js
-});
-
-
-// ══════════════════════════════════════════════════════════════
-//  RENDER LOOP
-// ══════════════════════════════════════════════════════════════
-(function animate() {
-  requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  const t     = clock.getElapsedTime();
-  const snap  = telem.snapshot();
-
-  controls.update();
-  mixers.forEach(m => m.update(delta));             // fan animations
-  leds.update(t, snap);                             // LED pulse/blink
-  cables.update(t, snap.net_rx);                    // cable glow pulses
-  lod.update(ndc);                                  // hover popup
-
-  composer.render();                                // bloom pipeline
-})();
-
-
-// ══════════════════════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════════════════════
-function cl(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
-function hudRow(id, label, value, cls='') {
-  const el=document.getElementById(id); if(!el)return;
-  el.className='hud-row'+(cls?' '+cls:'');
-  el.innerHTML=`<span>${label}</span><span>${value}</span>`;
-}
-
+  /* ---------- scroll reveal ---------- */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
 </script>
 </body>
 </html>
