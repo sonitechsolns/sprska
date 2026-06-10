@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sparshika | Production Digital Twin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #060a10; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
+    canvas { display: block; }
+
+    /* ── HUD ─────────────────────────────────────── */
+    #hud {
+      position: fixed; top: 14px; left: 14px; z-index: 10;
+      background: rgba(4,8,20,.88);
+      border: 1px solid #1a3a5a; border-radius: 6px;
+      padding: 12px 16px; min-width: 245px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 28px rgba(0,160,255,.10);
+    }
+    #hud-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px; letter-spacing: 4px; color: #fff;
+      margin-bottom: 10px; padding-bottom: 7px;
+      border-bottom: 1px solid #1a3a5a;
+    }
+    .hud-row {
+      display: flex; justify-content: space-between;
+      font-size: 11px; line-height: 2.0; color: #4a7a9b;
+    }
+    .hud-row span:last-child {
+      font-family: 'Share Tech Mono', monospace; color: #7ab8f5;
+    }
+    .hud-row.warn span:last-child { color: #ffb300; }
+    .hud-row.crit span:last-child { color: #ff4040; }
+    .hud-row.ok   span:last-child { color: #00e676; }
+
+    /* ── Bloom controls ──────────────────────────── */
+    #bloom-ctrl {
+      position: fixed; top: 14px; right: 14px; z-index: 10;
+      background: rgba(4,8,20,.88); border: 1px solid #1a3a5a;
+      border-radius: 6px; padding: 10px 14px; min-width: 200px;
+      backdrop-filter: blur(8px);
+    }
+    #bloom-ctrl label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; color: #4a7a9b;
+      display: flex; justify-content: space-between; margin-bottom: 6px;
+    }
+    #bloom-ctrl input[type=range] {
+      width: 100%; accent-color: #00aaff; cursor: pointer;
+    }
+
+    /* ── Anomaly ticker ──────────────────────────── */
+    #anomaly-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+      background: rgba(4,8,20,.92); border-top: 1px solid #ff3d3d44;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; color: #ff6b6b;
+      padding: 5px 14px; display: none; white-space: nowrap;
+    }
+
+    /* ── Loading overlay ─────────────────────────── */
+    #overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: #060a10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #overlay-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px; letter-spacing: 6px; color: #00e5ff;
+    }
+    #progress-wrap { width: 320px; height: 2px; background: #0e2a44; border-radius: 2px; overflow: hidden; }
+    #progress-bar  { height: 100%; width: 0%; background: linear-gradient(90deg,#00e5ff,#0044ff); transition: width .3s ease; box-shadow: 0 0 10px #00e5ff88; }
+    #overlay-status { font-size: 10px; color: #2a5a7a; font-family: 'Share Tech Mono', monospace; letter-spacing: 2px; }
+    #overlay-error  { color: #ff4444; font-size: 11px; font-family: 'Share Tech Mono', monospace; max-width: 500px; text-align: center; display: none; }
+
+    /* ── Hover popup ─────────────────────────────── */
+    #popup {
+      position: fixed; pointer-events: none; display: none; z-index: 20;
+      background: rgba(3,8,22,.93); border: 1px solid #1e3a5f;
+      border-radius: 5px; padding: 8px 13px; min-width: 182px;
+      backdrop-filter: blur(4px);
+    }
+    #popup[data-mode="far"]  { border-color: #1e3a5f; }
+    #popup[data-mode="near"] { border-color: #00e5ff66; }
+    .pop-row { display: flex; justify-content: space-between; gap: 18px; font-size: 11px; line-height: 1.9; font-family: 'Share Tech Mono', monospace; }
+    .pop-label { color: #3a6a8a; }
+    .pop-value { color: #c8e6ff; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div id="overlay">
+  <div id="overlay-title">SPARSHIKA</div>
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+  <div id="overlay-status">INITIALIZING HARDWARE CORE...</div>
+  <div id="overlay-error"></div>
+</div>
+
+<div id="hud">
+  <div id="hud-title">SPARSHIKA</div>
+  <div class="hud-row" id="h-cpu-load"><span>CPU Load</span><span>—</span></div>
+  <div class="hud-row" id="h-cpu-temp"><span>CPU Temp</span><span>—</span></div>
+  <div class="hud-row" id="h-fan-rpm" ><span>Fan RPM avg</span><span>—</span></div>
+  <div class="hud-row" id="h-drives"  ><span>Active Drives</span><span>—</span></div>
+  <div class="hud-row" id="h-net"     ><span>Network</span><span>—</span></div>
+  <div class="hud-row" id="h-psu"     ><span>PSU Load</span><span>—</span></div>
+  <div class="hud-row" id="h-anomaly" ><span>Anomalies</span><span>0</span></div>
+</div>
+
+<!-- Live bloom/strength tweak panel -->
+<div id="bloom-ctrl">
+  <label>Bloom Strength <span id="lbl-strength">0.80</span>
+    <input type="range" id="sl-strength" min="0" max="3" step="0.05" value="0.80">
+  </label>
+  <label>Bloom Threshold <span id="lbl-thresh">0.52</span>
+    <input type="range" id="sl-thresh" min="0" max="1" step="0.02" value="0.52">
+  </label>
+  <label>Bloom Radius <span id="lbl-radius">0.55</span>
+    <input type="range" id="sl-radius" min="0" max="1" step="0.02" value="0.55">
+  </label>
+</div>
+
+<div id="anomaly-bar"></div>
+<div id="popup"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three":         "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE         from 'three';
+import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+
+// New visual systems
+import { createComposer } from './src/PostProcessing.js';
+import { setupLighting }  from './src/SceneLighting.js';
+import { RackPopulator }  from './src/RackPopulator.js';
+import { CableSystem }    from './src/CableSystem.js';
+
+
+// ══════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════════════
+const U           = 0.04445;
+const RAIL_BASE_Y = 0.075;
+const RACK_H      = 42 * U + 0.15;
+const FAR_LOD     = 4.0;
+
+// ── Rack positions ────────────────────────────────────────────
+// Centre rack (X=0) = full-detail GLB with LEDs & fans
+// Six flanking racks = InstancedMesh via RackPopulator
+const RACK_SPACING = 0.68;
+const SIDE_RACKS   = [-3, -2, -1, 1, 2, 3].map(i => [i * RACK_SPACING, 0, 0]);
+const ALL_RACKS    = [[0, 0, 0], ...SIDE_RACKS];
+
+
+// ══════════════════════════════════════════════════════════════
+//  TELEMETRY GENERATOR
+// ══════════════════════════════════════════════════════════════
+class TelemetryGenerator {
+  constructor() {
+    this._cpuLoad  = 0.20; this._cpuTemp = 28;
+    this._gpuLoad  = 0.10;
+    this._fanRPM   = new Array(8).fill(1800);
+    this._hddIO    = new Float32Array(24);
+    this._nicRx    = new Float32Array(2);
+    this._psuLoad  = 0;
+    this._netState = 0; this._burstMs = 0;
+    this._active   = new Uint8Array(24);
+    this._listeners = []; this._iv = null;
+    this._fc = [[45,1200],[55,2100],[65,3800],[75,5400],[85,7200]];
+  }
+  start(ms=500) { if (!this._iv) this._iv = setInterval(()=>this._tick(ms),ms); }
+  onTick(fn) { this._listeners.push(fn); }
+  snapshot() {
+    return {
+      cpuLoad: this._cpuLoad,  cpuTemp: +this._cpuTemp.toFixed(1),
+      gpuLoad: this._gpuLoad,  psuLoad: +this._psuLoad.toFixed(3),
+      fanRPM:  [...this._fanRPM], hddIO: Array.from(this._hddIO),
+      nicRx:   Array.from(this._nicRx),
+      netState: ['IDLE','MODERATE','BURST'][this._netState],
+      net_rx:   this._nicRx[0], net_uplink: Math.max(...this._nicRx),
+      fan_rpm:  this._fanRPM.map(r=>r/7200),
+      hdd_io:   Array.from(this._hddIO),
+      fault:    this._cpuTemp>88?1:0, power:1, status:this._cpuLoad,
+      psu_load: this._psuLoad,
+    };
+  }
+  _tick(ms) {
+    const n=(Math.random()-.5)*.04, rv=(0.35-this._cpuLoad)*.03;
+    this._cpuLoad = cl(this._cpuLoad+n+rv, .05, 1);
+    if (Math.random()<.012) this._cpuLoad = cl(this._cpuLoad+.25+Math.random()*.3,.05,1);
+    this._gpuLoad = cl(this._gpuLoad+(Math.random()-.5)*.03,.02,.95);
+    const tTgt=22+(95-22)*(1-Math.exp(-2.8*this._cpuLoad));
+    this._cpuTemp+=.06*(tTgt-this._cpuTemp)+(Math.random()-.5)*.4;
+    const tRPM=this._fanRPM_(this._cpuTemp);
+    for(let i=0;i<8;i++){const j=1+(Math.random()-.5)*.06,d=tRPM*j-this._fanRPM[i];this._fanRPM[i]=cl(this._fanRPM[i]+cl(d,-400,400),0,7400);}
+    for(let i=0;i<24;i++){if(this._active[i]){this._hddIO[i]=cl(this._hddIO[i]+(Math.random()-.4)*.15,0,1);if(Math.random()<.08)this._active[i]=0;}else{if(Math.random()<.03+this._cpuLoad*.07){this._active[i]=1;this._hddIO[i]=.2+Math.random()*.6;}else this._hddIO[i]*=.88;}}
+    this._burstMs=Math.max(0,this._burstMs-ms);
+    if(this._netState===0&&Math.random()<.05){this._netState=Math.random()<.7?1:2;this._burstMs=1000+Math.random()*5000;}
+    else if(this._netState>0&&this._burstMs<=0) this._netState=0;
+    const b=[0,.25,.85][this._netState];
+    for(let i=0;i<2;i++) this._nicRx[i]=cl(b+(Math.random()-.5)*.08,0,1);
+    const cW=this._cpuLoad*185,gW=this._gpuLoad*220,dW=(Array.from(this._hddIO).reduce((a,v)=>a+v,0)/24)*60;
+    this._psuLoad=cl((cW+gW+dW+90)/850,0,1);
+    const s=this.snapshot(); this._listeners.forEach(fn=>{try{fn(s);}catch(e){}});
+  }
+  _fanRPM_(t) {
+    const c=this._fc; if(t<=c[0][0]) return c[0][1];
+    for(let i=1;i<c.length;i++){if(t<=c[i][0]){const a=(t-c[i-1][0])/(c[i][0]-c[i-1][0]);return c[i-1][1]+a*(c[i][1]-c[i-1][1]);}}
+    return c[c.length-1][1];
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  LED CONTROLLER
+// ══════════════════════════════════════════════════════════════
+class LEDController {
+  constructor() { this._leds=[]; this._index=new Map(); }
+  register(root) {
+    root.traverse(obj=>{
+      if(!obj.isMesh||!obj.name.endsWith('_LED')) return;
+      const mat=obj.material.clone(); obj.material=mat;
+      const e={mat,base:mat.emissiveIntensity||1,channel:this._ch(obj.name),phase:Math.random()*Math.PI*2,speed:.6+Math.random()*2.8};
+      this._leds.push(e); this._index.set(obj.name,e);
+    });
+  }
+  update(t,snap) { for(const e of this._leds) e.mat.emissiveIntensity=this._i(this._r(e,snap),t,e); }
+  _ch(n) {
+    if(/^HDD_\d+_LED$/.test(n))          return 'hdd_io';
+    if(/^Switch_Port_\d+_LED$/.test(n))  return 'net_rx';
+    if(/^Switch_SFP_\d+_LED$/.test(n))   return 'net_uplink';
+    if(/^PSU_[LR]_LED$/.test(n))         return 'psu_load';
+    if(/^Fan_\d+_Fault_LED$/.test(n))    return 'fan_rpm';
+    if(/Fault_LED$/.test(n))             return 'fault';
+    if(/Power_LED$/.test(n))             return 'power';
+    if(/^NIC_[LR]_LED$/.test(n))         return 'net_rx';
+    return 'status';
+  }
+  _r(e,s) { const v=s[e.channel]; return cl(Array.isArray(v)?v[0]??0:v??0,0,1); }
+  _i(load,t,{base,channel,phase,speed}) {
+    const p=phase+t*speed;
+    if(channel==='power') return base*(.92+.08*Math.sin(p*1.3));
+    if(channel==='fault'&&load>.5){const c=((p%(Math.PI*2))/(Math.PI*2)),b1=Math.exp(-80*(c-.15)**2),b2=Math.exp(-80*(c-.30)**2)*.55;return base*Math.min(1,b1+b2+.04);}
+    if(load<=0) return base*.04;
+    if(load<=.30) return base*(.15+load*2.8);
+    if(load<=.70) return base*(.65+.35*Math.sin(p*(.8+load*3.5)));
+    const v=Math.sin(p*(4+load*14))*Math.cos(p*(4+load*14)*.43);
+    return base*(v>(1-(0.3+load*.65)*2)?1.0:.08);
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  ANOMALY ENGINE
+// ══════════════════════════════════════════════════════════════
+class AnomalyEngine {
+  constructor(){this._ch=new Map();this._cbs=[];this._log=[];this._total=0;}
+  onAnomaly(fn){this._cbs.push(fn);}
+  totalCount(){return this._total;}
+  ingest(snap){
+    const flat={};
+    const p=(k,v)=>{if(typeof v==='number')flat[k]=v;};
+    p('cpuLoad',snap.cpuLoad);p('cpuTemp',snap.cpuTemp);p('psuLoad',snap.psuLoad);
+    snap.fanRPM.forEach((v,i)=>p(`fan${i}`,v));
+    snap.hddIO?.forEach((v,i)=>p(`hdd${i}`,v));
+    for(const[k,v]of Object.entries(flat)){
+      const e=this._e(k);e.n++;const d=v-e.mean;e.mean+=d/e.n;e.M2+=d*(v-e.mean);
+      const s=e.n>1?Math.sqrt(e.M2/(e.n-1)):0;e.prev=v;
+      if(e.n<20||s<1e-9)continue;
+      const z=Math.abs(v-e.mean)/s;
+      if(z>3&&Date.now()-e.lastAlert>4000){
+        e.lastAlert=Date.now();this._total++;
+        const ev={id:k,value:+v.toFixed(3),z:+z.toFixed(2),severity:z>6?'CRITICAL':'WARNING',ts:new Date().toLocaleTimeString()};
+        this._log.push(ev);if(this._log.length>100)this._log.shift();
+        this._cbs.forEach(fn=>{try{fn(ev);}catch(e){}});
+      }
+    }
+  }
+  _e(k){if(!this._ch.has(k))this._ch.set(k,{n:0,mean:0,M2:0,prev:0,lastAlert:0});return this._ch.get(k);}
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  LOD RAYCASTER
+// ══════════════════════════════════════════════════════════════
+class LoDRaycaster {
+  constructor(camera,renderer,telem){
+    this._camera=camera;this._renderer=renderer;this._telem=telem;
+    this._ray=new THREE.Raycaster();this._far=[];this._near=[];
+    this._popup=document.getElementById('popup');this._active=null;
+  }
+  addFarTarget(m){this._far.push(m);}
+  addNearTargets(a){this._near.push(...a);}
+  update(ndc){
+    this._ray.setFromCamera(ndc,this._camera);
+    this._camera.position.length()>FAR_LOD?this._castFar():this._castNear();
+  }
+  hide(){this._popup.style.display='none';this._active=null;}
+  _castFar(){
+    const h=this._ray.intersectObjects(this._far,false);
+    if(!h.length){this.hide();return;}
+    const id=h[0].object.userData.rackId||'Rack-A';
+    if(id===this._active)return;this._active=id;
+    const s=this._telem.snapshot();
+    const ad=s.hddIO?.filter(v=>v>.05).length??0;
+    this._show(h[0].point,[['Rack',id],['Total Power',`${Math.round(s.psuLoad*850)} W`],['CPU Temp',`${s.cpuTemp} °C`],['Active Drives',`${ad}/24`],['Net',s.netState]],'far');
+  }
+  _castNear(){
+    const h=this._ray.intersectObjects(this._near,true);
+    if(!h.length){this.hide();return;}
+    const name=h[0].object.name;
+    if(name===this._active)return;this._active=name;
+    const s=this._telem.snapshot();
+    const hM=name.match(/^HDD_(\d+)_LED$/),fM=name.match(/^Fan_(\d+)_Fault_LED$/),pM=name.match(/^PSU_([LR])_LED$/),nM=name.match(/^NIC_([LR])_LED$/);
+    let rows;
+    if(hM){const io=(s.hddIO?.[parseInt(hM[1])-1]??0)*600;rows=[['Drive',`HDD ${hM[1]}`],['I/O',`${io.toFixed(0)} MB/s`],['State',io>5?'ACTIVE':'IDLE']];}
+    else if(fM){const rpm=s.fanRPM?.[parseInt(fM[1])-1]??0;rows=[['Fan',`SysFan ${fM[1]}`],['RPM',`${Math.round(rpm)}`],['State',rpm<500?'⚠ FAULT':'OK']];}
+    else if(pM){rows=[['PSU',pM[1]==='L'?'Left':'Right'],['Load',`${(s.psuLoad*100).toFixed(0)}%`],['Output',`${(s.psuLoad*750).toFixed(0)} W`]];}
+    else if(nM){const i=nM[1]==='L'?0:1;rows=[['NIC',`Port ${i+1}`],['RX',`${((s.nicRx?.[i]??0)*25).toFixed(1)} Gbps`]];}
+    else rows=[['Object',name||'—'],['CPU',`${(s.cpuLoad*100).toFixed(0)}%`]];
+    this._show(h[0].point,rows,'near');
+  }
+  _show(wp,rows,mode){
+    const v=wp.clone().project(this._camera);
+    const el=this._renderer.domElement;
+    this._popup.style.left=`${(v.x*.5+.5)*el.clientWidth+14}px`;
+    this._popup.style.top=`${(-v.y*.5+.5)*el.clientHeight-14}px`;
+    this._popup.style.display='block';this._popup.dataset.mode=mode;
+    this._popup.innerHTML=rows.map(([l,v])=>`<div class="pop-row"><span class="pop-label">${l}</span><span class="pop-value">${v}</span></div>`).join('');
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  SCENE BOOTSTRAP
+// ══════════════════════════════════════════════════════════════
+const scene    = new THREE.Scene();
+scene.background = new THREE.Color(0x080c14);
+scene.fog = new THREE.FogExp2(0x080c14, 0.055);
+
+const RACK_MID = RAIL_BASE_Y + (42*U)/2;
+const camera   = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.01, 40);
+camera.position.set(0, RACK_MID, 3.5);   // centred on full row
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+// toneMapping + outputColorSpace handled by OutputPass — do NOT set here
+document.body.appendChild(renderer.domElement);
+
+// ── Environment map (needed for glass door reflections) ───────
+const pmrem   = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+pmrem.dispose();
+
+// ── Orbit controls ─────────────────────────────────────────────
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, RACK_MID, 0);
+controls.enableDamping  = true;
+controls.dampingFactor  = 0.07;
+controls.minDistance    = 0.3;
+controls.maxDistance    = 12;
+controls.maxPolarAngle  = Math.PI * 0.88;
+controls.update();
+
+// ── Floor grid + plane ─────────────────────────────────────────
+const floorMat  = new THREE.MeshStandardMaterial({ color:0x0a0e16, roughness:0.92, metalness:0.08 });
+const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(16, 12), floorMat);
+floorMesh.rotation.x = -Math.PI/2; floorMesh.position.y=-0.002; floorMesh.receiveShadow=true;
+scene.add(floorMesh);
+// Raised-floor tile pattern grid
+scene.add(new THREE.GridHelper(16, 64, 0x1a2840, 0x0f1a28));
+
+// ── Invisible rack bounding volume for far-LoD hits ───────────
+const rackBound = new THREE.Mesh(
+  new THREE.BoxGeometry(RACK_SPACING * ALL_RACKS.length, RACK_H + 0.15, 0.80),
+  new THREE.MeshBasicMaterial({ visible: false })
+);
+rackBound.position.set(0, (RACK_H+0.15)/2, 0);
+rackBound.userData.rackId = 'Row-A';
+scene.add(rackBound);
+
+// ── Post-processing ────────────────────────────────────────────
+const { composer, bloom } = createComposer(renderer, scene, camera);
+
+// ── Industrial lighting (replaces old moody setup) ────────────
+setupLighting(scene, ALL_RACKS);
+
+// ── Surrounding racks (InstancedMesh — memory efficient) ──────
+const populator = new RackPopulator(scene, SIDE_RACKS);
+
+// ── Cable tray + glow cables ───────────────────────────────────
+const cables = new CableSystem(scene, ALL_RACKS, { cablesPerRack: 10 });
+
+// ── Live bloom slider controls ─────────────────────────────────
+document.getElementById('sl-strength').addEventListener('input', e => {
+  bloom.strength = parseFloat(e.target.value);
+  document.getElementById('lbl-strength').textContent = e.target.value;
+});
+document.getElementById('sl-thresh').addEventListener('input', e => {
+  bloom.threshold = parseFloat(e.target.value);
+  document.getElementById('lbl-thresh').textContent = e.target.value;
+});
+document.getElementById('sl-radius').addEventListener('input', e => {
+  bloom.radius = parseFloat(e.target.value);
+  document.getElementById('lbl-radius').textContent = e.target.value;
+});
+
+
+// ══════════════════════════════════════════════════════════════
+//  LIVE SYSTEMS
+// ══════════════════════════════════════════════════════════════
+const telem   = new TelemetryGenerator();
+const leds    = new LEDController();
+const anomaly = new AnomalyEngine();
+const lod     = new LoDRaycaster(camera, renderer, telem);
+const clock   = new THREE.Clock();
+const mixers  = [];
+
+lod.addFarTarget(rackBound);
+telem.onTick(snap => anomaly.ingest(snap));
+
+let anomalyCount = 0;
+anomaly.onAnomaly(ev => {
+  anomalyCount++;
+  const bar = document.getElementById('anomaly-bar');
+  bar.style.display = 'block';
+  bar.textContent = `⚠  ${ev.ts}  ${ev.severity}  ${ev.id} = ${ev.value}  (z=${ev.z}σ)`;
+  setTimeout(() => { bar.style.display='none'; }, 6000);
+  hudRow('h-anomaly', 'Anomalies', anomalyCount, 'warn');
+});
+
+telem.onTick(snap => {
+  const cl_ = snap.cpuLoad, t_ = snap.cpuTemp;
+  hudRow('h-cpu-load','CPU Load',    `${(cl_*100).toFixed(0)}%`,  cl_>.85?'crit':cl_>.65?'warn':'ok');
+  hudRow('h-cpu-temp','CPU Temp',    `${t_}°C`,                   t_>85?'crit':t_>70?'warn':'ok');
+  hudRow('h-fan-rpm', 'Fan RPM avg', `${Math.round(snap.fanRPM.reduce((a,v)=>a+v,0)/8)} RPM`,'');
+  hudRow('h-drives',  'Active Drives',`${snap.hddIO.filter(v=>v>.05).length} / 24`,'');
+  hudRow('h-net',     'Network',     snap.netState, snap.netState==='BURST'?'warn':'');
+  hudRow('h-psu',     'PSU Load',    `${(snap.psuLoad*100).toFixed(0)}%`, snap.psuLoad>.85?'warn':'ok');
+  populator.updatePanels(SIDE_RACKS.map(()=>snap.cpuLoad));
+});
+
+
+// ══════════════════════════════════════════════════════════════
+//  GLB LOADER  (centre rack — detailed with LEDs & fan clips)
+// ══════════════════════════════════════════════════════════════
+function setStatus(msg) { document.getElementById('overlay-status').textContent = msg; }
+function setProgress(pct) { document.getElementById('progress-bar').style.width = pct+'%'; }
+function showError(msg) {
+  const el = document.getElementById('overlay-error');
+  el.style.display='block'; el.textContent='⚠  '+msg;
+}
+
+function normalizeAndPlace(obj, isRack, uSlot=1) {
+  scene.add(obj); obj.updateMatrixWorld(true);
+  const box3=new THREE.Box3().setFromObject(obj);
+  const ctr=new THREE.Vector3(); box3.getCenter(ctr);
+  obj.position.x -= ctr.x; obj.position.z -= ctr.z;
+  obj.position.y += isRack ? -box3.min.y : (RAIL_BASE_Y+(uSlot-1)*U)-box3.min.y;
+  obj.updateMatrixWorld(true);
+  obj.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
+}
+
+// Centre rack GLBs: [path, uSlot, isRack, optional]
+const MODELS = [
+  ['models/Rack_42U_Chassis.glb',        0,  true,  true ],
+  ['models/DellStyle_ServerChassis.glb', 20, false, false],
+  ['models/DellStyle_NetworkSwitch.glb',  5, false, false],
+  ['models/DellStyle_StorageBay.glb',    10, false, false],
+];
+
+async function loadAll() {
+  const loader = new GLTFLoader();
+  for (let i=0; i<MODELS.length; i++) {
+    const [path, uSlot, isRack, optional] = MODELS[i];
+    setStatus(`Loading ${path.split('/').pop().replace('.glb','')}...`);
+    try {
+      const gltf = await loader.loadAsync(path);
+      if (gltf.animations.length) {
+        const mx = new THREE.AnimationMixer(gltf.scene);
+        gltf.animations.forEach(c => mx.clipAction(c).play());
+        mixers.push(mx);
+      }
+      normalizeAndPlace(gltf.scene, isRack, uSlot);
+      leds.register(gltf.scene);
+      const meshes=[]; gltf.scene.traverse(o=>{ if(o.isMesh) meshes.push(o); });
+      lod.addNearTargets(meshes);
+    } catch (err) {
+      if (!optional) showError(`Failed: ${err.message}`);
+      else console.warn('Optional not found:', path);
+    }
+    setProgress(((i+1)/MODELS.length)*100);
+  }
+  const ov=document.getElementById('overlay');
+  ov.style.transition='opacity .5s'; ov.style.opacity='0';
+  setTimeout(()=>ov.style.display='none', 520);
+  telem.start();
+}
+loadAll();
+
+
+// ══════════════════════════════════════════════════════════════
+//  POINTER
+// ══════════════════════════════════════════════════════════════
+const ndc={x:0,y:0};
+renderer.domElement.addEventListener('pointermove',e=>{
+  const r=renderer.domElement.getBoundingClientRect();
+  ndc.x=((e.clientX-r.left)/r.width)*2-1;
+  ndc.y=-((e.clientY-r.top)/r.height)*2+1;
+});
+renderer.domElement.addEventListener('pointerleave',()=>lod.hide());
+
+
+// ══════════════════════════════════════════════════════════════
+//  RESIZE
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  // composer resize handled internally in PostProcessing.js
+});
+
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER LOOP
+// ══════════════════════════════════════════════════════════════
+(function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const t     = clock.getElapsedTime();
+  const snap  = telem.snapshot();
+
+  controls.update();
+  mixers.forEach(m => m.update(delta));             // fan animations
+  leds.update(t, snap);                             // LED pulse/blink
+  cables.update(t, snap.net_rx);                    // cable glow pulses
+  lod.update(ndc);                                  // hover popup
+
+  composer.render();                                // bloom pipeline
+})();
+
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function cl(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+function hudRow(id, label, value, cls='') {
+  const el=document.getElementById(id); if(!el)return;
+  el.className='hud-row'+(cls?' '+cls:'');
+  el.innerHTML=`<span>${label}</span><span>${value}</span>`;
+}
+
+</script>
+</body>
+</html>
