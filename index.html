@@ -195,44 +195,6 @@
   .spinner{width:16px;height:16px;border:2px solid rgba(3,7,18,0.35);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* downloads center (fullscreen) */
-  .dc{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;flex-direction:column;overflow-y:auto}
-  .dc.show{display:flex}
-  .dc-top{position:sticky;top:0;background:rgba(3,7,18,0.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:18px 0;z-index:3}
-  .dc-top .container{display:flex;justify-content:space-between;align-items:center}
-  .dc-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--slate)}
-  .dc-avatar{width:36px;height:36px;border-radius:50%;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-weight:600;font-family:var(--font-display)}
-  .dc-main{flex:1;padding:60px 0 80px}
-  .dc-hero{text-align:center;margin-bottom:54px}
-  .dc-hero .badge{margin-bottom:20px}
-  .dc-hero h2{font-family:var(--font-display);font-weight:300;font-size:38px;color:#fff;margin-bottom:14px}
-  .dc-hero h2 b{font-weight:700}
-  .dc-hero p{color:var(--slate);max-width:560px;margin:0 auto}
-  .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;max-width:900px;margin:0 auto}
-  .dl-card{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:16px;padding:34px;transition:border-color .3s}
-  .dl-card:hover{border-color:rgba(6,182,212,0.35)}
-  .dl-os{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-  .dl-os-ic{width:52px;height:52px;border-radius:12px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;color:var(--cyan)}
-  .dl-os h3{font-family:var(--font-display);font-weight:600;font-size:19px;color:#fff}
-  .dl-os .ver{font-family:var(--font-mono);font-size:11px;color:var(--slate-d)}
-  .dl-file{font-family:var(--font-mono);font-size:12.5px;color:var(--slate);background:rgba(0,0,0,0.35);border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-  .dl-file .sz{color:var(--slate-d)}
-  .dl-note{font-size:12px;color:var(--slate-d);margin-bottom:20px}
-  .dl-btn{width:100%;padding:14px;background:var(--cyan-500);color:var(--bg);font-weight:600;font-size:13px;letter-spacing:.12em;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .3s}
-  .dl-btn:hover{background:var(--cyan);box-shadow:0 0 26px rgba(6,182,212,0.45)}
-  .dl-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
-  .prog{margin-top:20px;display:none}
-  .prog.show{display:block}
-  .prog-bar{height:8px;border-radius:99px;background:#1e293b;overflow:hidden}
-  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,#06b6d4,#3b82f6);border-radius:99px;transition:width .25s linear}
-  .prog-meta{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--font-mono);font-size:11.5px;color:var(--slate)}
-  .prog-meta .pct{color:var(--cyan)}
-  .install{margin-top:18px;background:rgba(6,182,212,0.05);border:1px solid rgba(6,182,212,0.25);border-radius:10px;padding:18px;display:none}
-  .install.show{display:block;animation:rise .35s ease}
-  .install h4{font-family:var(--font-display);font-size:13px;color:var(--cyan);letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-  .install ol{margin:0;padding-left:18px;font-size:12.5px;color:#cbd5e1;line-height:1.8}
-  .install code{font-family:var(--font-mono);background:rgba(0,0,0,0.4);padding:1px 6px;border-radius:4px;color:var(--cyan);font-size:11.5px}
-
   .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   .hidden{display:none}
@@ -462,13 +424,6 @@
     </div>
     <form id="loginForm" onsubmit="return authenticate(event)">
       <div class="field">
-        <label>WORKSPACE ID</label>
-        <div class="field-wrap">
-          <svg class="field-ic" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2M10 6h4M10 10h4M10 14h4M10 18h4"/></svg>
-          <input id="liWorkspace" class="has-ic" type="text" placeholder="e.g. acme-corp" style="font-family:var(--font-mono)" required />
-        </div>
-      </div>
-      <div class="field">
         <label>ADMINISTRATOR EMAIL</label>
         <div class="field-wrap">
           <svg class="field-ic" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -484,92 +439,69 @@
       </div>
       <div id="loginError" style="display:none;font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px 12px;margin-top:4px"></div>
       <button class="btn-solid" id="loginBtn" type="submit"><span id="loginLabel">INITIALIZE SESSION</span></button>
+      <p style="margin-top:16px;font-size:11.5px;line-height:1.6;color:var(--slate-d);text-align:center">
+        Access is provisioned by Soni Tech Solutions.<br>
+        Need a workspace? <a href="#" onclick="openRequestModal(); return false;" style="color:var(--cyan)">Request access</a> to get started.
+      </p>
     </form>
   </div>
 </div>
 
-<!-- DOWNLOADS CENTER (fullscreen) -->
-<div class="dc" id="downloadCenter">
-  <div class="dc-top">
-    <div class="container">
-      <a class="brand-link" href="https://soni-tech-solutions.vercel.app/" target="_blank" rel="noopener noreferrer">
-        <div class="brand-row">
-          <svg class="brand-mark icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-          <span class="brand-name" style="font-size:20px">SPARSHIKA</span>
-        </div>
-      </a>
-      <div style="display:flex;align-items:center;gap:20px">
-        <div class="dc-user"><div class="dc-avatar" id="dcAvatar">A</div><span id="dcEmail">admin@company.com</span></div>
-        <button class="btn btn-outline" onclick="closeDownloadCenter()">SIGN OUT</button>
-      </div>
+<!-- REQUEST A WORKSPACE MODAL -->
+<div class="overlay" id="requestOverlay">
+  <div class="overlay-bg" onclick="closeRequestModal()"></div>
+  <div class="modal sm">
+    <button class="modal-x" onclick="closeRequestModal()"><svg class="icon" style="width:20px;height:20px"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="modal-head">
+      <svg class="brand-mark icon" style="color:var(--cyan)" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+      <span class="modal-title">REQUEST ACCESS</span>
     </div>
-  </div>
-  <div class="dc-main">
-    <div class="container">
-      <div class="dc-hero">
-        <span class="badge"><span class="dot"></span>SESSION AUTHENTICATED · 14-DAY ENTERPRISE TRIAL</span>
-        <h2>Sparshika <b>Enterprise Downloads</b></h2>
-        <p>Your standalone desktop wrapper is provisioned. Download the packaged Core engine for your platform and connect it to your local metric ports.</p>
+
+    <div id="requestForm">
+      <p style="font-size:13px;color:var(--slate);margin-bottom:20px;font-weight:300">Tell us about your infrastructure. Our team reviews every request and provisions workspaces manually.</p>
+
+      <div class="field">
+        <label>FULL NAME</label>
+        <input id="rqName" type="text" placeholder="Jane Doe" required />
       </div>
-      <div class="dl-grid">
-        <!-- Windows -->
-        <div class="dl-card">
-          <div class="dl-os">
-            <div class="dl-os-ic"><svg class="icon"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-            <div><h3>Windows Suite</h3><div class="ver">Standalone package · v2.0.4 · x64</div></div>
-          </div>
-          <div class="dl-file"><span>Sparshika_Core_Setup_x64.exe</span><span class="sz">248.6 MB</span></div>
-          <p class="dl-note">Windows 10/11 · DirectX 12 · 8&nbsp;GB RAM minimum</p>
-          <button class="dl-btn" id="winBtn" onclick="simulateDownload('win')">
-            <svg class="icon" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            DOWNLOAD .EXE
-          </button>
-          <div class="prog" id="winProg">
-            <div class="prog-bar"><div class="prog-fill" id="winFill"></div></div>
-            <div class="prog-meta"><span id="winBytes">0.0 / 248.6 MB</span><span><span id="winSpeed">0.0 MB/s</span> · <span class="pct" id="winPct">0%</span></span></div>
-          </div>
-          <div class="install" id="winInstall">
-            <h4><svg class="icon" style="width:15px;height:15px"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Download complete — install &amp; configure</h4>
-            <ol>
-              <li>Run <code>Sparshika_Core_Setup_x64.exe</code> and approve the UAC prompt.</li>
-              <li>During setup, set the local metric port to <code>:7842</code> (TCP).</li>
-              <li>Launch Sparshika Core, then open <code>Settings → Telemetry</code>.</li>
-              <li>Point the WebSocket endpoint at <code>ws://localhost:7842/stream</code>.</li>
-              <li>Paste your trial token to bind the workspace and start streaming.</li>
-            </ol>
-          </div>
+      <div class="field">
+        <label>COMPANY</label>
+        <input id="rqCompany" type="text" placeholder="Acme Corp" required />
+      </div>
+      <div class="field">
+        <label>WORK EMAIL</label>
+        <input id="rqEmail" type="email" placeholder="jane@acme.com" required />
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="field" style="flex:1">
+          <label>DATACENTER SIZE (RACKS)</label>
+          <input id="rqRacks" type="number" min="1" placeholder="50" required />
         </div>
-        <!-- Linux -->
-        <div class="dl-card">
-          <div class="dl-os">
-            <div class="dl-os-ic"><svg class="icon"><path d="M12 2a5 5 0 0 0-5 5c0 2 1 3 1 5 0 1-1 2-2 4-1 2 1 4 6 4s7-2 6-4c-1-2-2-3-2-4 0-2 1-3 1-5a5 5 0 0 0-5-5Z"/><path d="M10 8h.01M14 8h.01"/></svg></div>
-            <div><h3>Linux Suite</h3><div class="ver">Universal package · v2.0.4 · x64</div></div>
-          </div>
-          <div class="dl-file"><span>Sparshika_Core_x64.AppImage</span><span class="sz">271.3 MB</span></div>
-          <p class="dl-note">glibc 2.31+ · OpenGL 4.3 / Vulkan · 8&nbsp;GB RAM minimum</p>
-          <button class="dl-btn" id="linBtn" onclick="simulateDownload('lin')">
-            <svg class="icon" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            DOWNLOAD .APPIMAGE
-          </button>
-          <div class="prog" id="linProg">
-            <div class="prog-bar"><div class="prog-fill" id="linFill"></div></div>
-            <div class="prog-meta"><span id="linBytes">0.0 / 271.3 MB</span><span><span id="linSpeed">0.0 MB/s</span> · <span class="pct" id="linPct">0%</span></span></div>
-          </div>
-          <div class="install" id="linInstall">
-            <h4><svg class="icon" style="width:15px;height:15px"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>Download complete — install &amp; configure</h4>
-            <ol>
-              <li>Mark the binary executable: <code>chmod +x Sparshika_Core_x64.AppImage</code></li>
-              <li>Launch it: <code>./Sparshika_Core_x64.AppImage --port 7842</code></li>
-              <li>Allow the local metric port through your firewall (TCP <code>7842</code>).</li>
-              <li>Bind the stream: <code>ws://localhost:7842/stream</code></li>
-              <li>Authenticate with your trial token to activate the workspace.</li>
-            </ol>
-          </div>
+        <div class="field" style="flex:1">
+          <label>HOW MANY ADMINS</label>
+          <input id="rqAdmins" type="number" min="1" placeholder="3" required />
         </div>
       </div>
+      <div class="field">
+        <label>MESSAGE</label>
+        <textarea id="rqMessage" rows="3" placeholder="A few words about your use case…" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid #334155;border-radius:6px;padding:11px 15px;color:#fff;font-family:var(--font-body);font-size:14px;outline:none;resize:vertical" required></textarea>
+      </div>
+
+      <div id="requestError" style="display:none;font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px 12px;margin-bottom:8px"></div>
+      <button class="btn-solid" id="requestBtn" onclick="submitRequest()" style="width:100%"><span id="requestLabel">SUBMIT REQUEST</span></button>
+    </div>
+
+    <div id="requestSuccess" style="display:none;text-align:center;padding:24px 8px">
+      <div style="width:54px;height:54px;border-radius:50%;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+        <svg class="icon" style="color:var(--cyan);width:26px;height:26px"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <h3 style="font-family:var(--font-display);color:#fff;font-size:19px;margin-bottom:10px">Request received</h3>
+      <p style="font-size:13.5px;color:var(--slate);font-weight:300;line-height:1.6">Thanks — your request is in our queue. If it's a fit, our team will reach out to provision your workspace. We review manually, so timing varies.</p>
+      <button class="btn-glass" onclick="closeRequestModal()" style="margin-top:22px">CLOSE</button>
     </div>
   </div>
 </div>
+
 
 <!-- ============================================================
      FIREBASE CONFIG + INIT  (Path A — hardcoded web config)
@@ -586,6 +518,12 @@
     setPersistence,
     browserLocalPersistence
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyCSh7D2gZdsRP4q9ylI--z2qPbDJiSgh9A",
@@ -599,17 +537,33 @@
   };
 
   // Shared state the rest of the app reads at click-time
-  const state = { ready: false, app: null, auth: null, signInWithEmail: null };
+  const state = { ready: false, app: null, auth: null, db: null, signInWithEmail: null, saveAccessRequest: null };
   window.__SPARSHIKA_FB__ = state;
 
   try {
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db   = getFirestore(app);
     try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
 
     state.app  = app;
     state.auth = auth;
+    state.db   = db;
     state.signInWithEmail = (email, password) => signInWithEmailAndPassword(auth, email, password);
+
+    // Save a workspace access request into the accessRequests collection.
+    // Security Rules allow create-only for anyone, read for no one (console-only).
+    state.saveAccessRequest = (data) => addDoc(collection(db, 'accessRequests'), {
+      name: data.name,
+      company: data.company,
+      email: data.email,
+      racks: data.racks,
+      admins: data.admins,
+      message: data.message,
+      status: 'new',
+      createdAt: serverTimestamp()
+    });
+
     state.ready = true;
     console.info('[Sparshika] Firebase initialized for project:', firebaseConfig.projectId);
   } catch (err) {
@@ -675,10 +629,11 @@
 
     fb.signInWithEmail(email, password)
       .then((cred) => {
-        label.textContent = 'HANDSHAKE OK — PROVISIONING';
+        label.textContent = 'HANDSHAKE OK — SESSION ACTIVE';
+        // TODO: mount the post-login Control Center dashboard here (UI pending design).
         setTimeout(() => {
           closeModal();
-          openDownloadCenter(cred.user.email || email);
+          onLoginSuccess(cred.user);
           btn.disabled = false; btn.style.opacity = '1';
           label.textContent = 'INITIALIZE SESSION';
         }, 600);
@@ -700,47 +655,101 @@
   }
   window.authenticate = authenticate;
 
-  /* ---------- downloads center ---------- */
-  function openDownloadCenter(email){
-    document.getElementById('dcEmail').textContent = email;
-    document.getElementById('dcAvatar').textContent = (email[0] || 'A').toUpperCase();
-    document.getElementById('downloadCenter').classList.add('show');
+  /* ---------- Request a workspace (Formspree + Firestore) ---------- */
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnjybeal';
+
+  function openRequestModal(){
+    document.getElementById('loginOverlay').classList.remove('show');
+    // reset form/success state each open
+    document.getElementById('requestForm').style.display = 'block';
+    document.getElementById('requestSuccess').style.display = 'none';
+    document.getElementById('requestError').style.display = 'none';
+    document.getElementById('requestOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
   }
-  function closeDownloadCenter(){
-    document.getElementById('downloadCenter').classList.remove('show');
+  function closeRequestModal(){
+    document.getElementById('requestOverlay').classList.remove('show');
     document.body.style.overflow = '';
   }
+  window.openRequestModal = openRequestModal;
+  window.closeRequestModal = closeRequestModal;
 
-  const DL = {
-    win: { total: 248.6, btn: 'winBtn', prog: 'winProg', fill: 'winFill', bytes: 'winBytes', speed: 'winSpeed', pct: 'winPct', install: 'winInstall', label: 'DOWNLOAD .EXE' },
-    lin: { total: 271.3, btn: 'linBtn', prog: 'linProg', fill: 'linFill', bytes: 'linBytes', speed: 'linSpeed', pct: 'linPct', install: 'linInstall', label: 'DOWNLOAD .APPIMAGE' }
-  };
-  function simulateDownload(k){
-    const c = DL[k];
-    const btn = document.getElementById(c.btn);
+  function submitRequest(){
+    const btn = document.getElementById('requestBtn');
+    const label = document.getElementById('requestLabel');
+    const errEl = document.getElementById('requestError');
     if (btn.disabled) return;
-    btn.disabled = true; btn.textContent = 'DOWNLOADING…';
-    document.getElementById(c.prog).classList.add('show');
-    document.getElementById(c.install).classList.remove('show');
-    let done = 0;
-    const tick = setInterval(() => {
-      const speed = 5 + Math.random() * 9;           // MB per ~120ms burst
-      done = Math.min(c.total, done + speed);
-      const pct = Math.round((done / c.total) * 100);
-      document.getElementById(c.fill).style.width = pct + '%';
-      document.getElementById(c.bytes).textContent = done.toFixed(1) + ' / ' + c.total.toFixed(1) + ' MB';
-      document.getElementById(c.speed).textContent = (speed * 8).toFixed(1) + ' MB/s';
-      document.getElementById(c.pct).textContent = pct + '%';
-      if (done >= c.total){
-        clearInterval(tick);
-        document.getElementById(c.speed).textContent = 'done';
-        document.getElementById(c.install).classList.add('show');
-        btn.textContent = '✓ DOWNLOADED — RE-DOWNLOAD';
-        btn.disabled = false;
-        btn.onclick = () => { document.getElementById(c.fill).style.width = '0%'; btn.textContent = c.label; simulateDownload(k); };
-      }
-    }, 120);
+
+    const data = {
+      name:    document.getElementById('rqName').value.trim(),
+      company: document.getElementById('rqCompany').value.trim(),
+      email:   document.getElementById('rqEmail').value.trim(),
+      racks:   parseInt(document.getElementById('rqRacks').value, 10),
+      admins:  parseInt(document.getElementById('rqAdmins').value, 10),
+      message: document.getElementById('rqMessage').value.trim()
+    };
+
+    errEl.style.display = 'none';
+
+    // basic validation
+    if (!data.name || !data.company || !data.email || !data.message ||
+        !Number.isFinite(data.racks) || !Number.isFinite(data.admins)) {
+      errEl.textContent = 'Please fill in all fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) {
+      errEl.textContent = 'Please enter a valid work email.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true; btn.style.opacity = '.85';
+    label.innerHTML = '<span style="display:inline-flex;align-items:center;gap:9px"><span class="spinner"></span>SENDING…</span>';
+
+    const fb = window.__SPARSHIKA_FB__;
+
+    // Fire both in parallel: Formspree (email) + Firestore (record).
+    // Email is the critical path; Firestore is best-effort.
+    const emailReq = fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name, company: data.company, email: data.email,
+        racks: data.racks, admins: data.admins, message: data.message,
+        _subject: 'New Sparshika workspace request — ' + data.company
+      })
+    }).then(r => { if (!r.ok) throw new Error('Formspree ' + r.status); return r; });
+
+    const dbReq = (fb && fb.ready && fb.saveAccessRequest)
+      ? fb.saveAccessRequest(data).catch(err => { console.warn('[Sparshika] Firestore save skipped:', err.message); })
+      : Promise.resolve();
+
+    emailReq
+      .then(() => dbReq)
+      .then(() => {
+        document.getElementById('requestForm').style.display = 'none';
+        document.getElementById('requestSuccess').style.display = 'block';
+      })
+      .catch((err) => {
+        console.error('[Sparshika] Request failed:', err.message);
+        errEl.textContent = 'Could not send your request. Please check your connection and try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.style.opacity = '1';
+        label.textContent = 'SUBMIT REQUEST';
+      });
+  }
+  window.submitRequest = submitRequest;
+
+  /* Temporary post-login acknowledgment. Replace with the Control Center dashboard. */
+  function onLoginSuccess(user){
+    const t = document.createElement('div');
+    t.textContent = '✓ Signed in as ' + (user.email || 'user') + ' — Control Center coming soon';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:200;' +
+      'background:var(--panel);border:1px solid rgba(6,182,212,0.4);color:#cffafe;font-size:13px;' +
+      'padding:13px 22px;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:var(--font-body)';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4200);
   }
 
   /* ---------- Panel A: ROI calculator ---------- */
@@ -993,7 +1002,17 @@
       doc.text('Page ' + p + ' of ' + total, pageW - margin, pageH - 26, { align: 'right' });
     }
 
-    doc.save(data.file);
+    // Open the generated PDF in a new tab for live viewing instead of forcing a download.
+    // The user can then use the browser's native PDF controls (including Save) if they wish.
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (!win) {
+      // Popup blocked — fall back to a same-tab navigation so the doc still opens.
+      location.href = url;
+    }
+    // Release the object URL after the tab has had time to load it.
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
   /* ---------- scroll reveal ---------- */
