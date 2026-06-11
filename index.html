@@ -482,6 +482,7 @@
           <input id="liToken" class="has-ic" type="password" placeholder="••••••••••••" required />
         </div>
       </div>
+      <div id="loginError" style="display:none;font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px 12px;margin-top:4px"></div>
       <button class="btn-solid" id="loginBtn" type="submit"><span id="loginLabel">INITIALIZE SESSION</span></button>
     </form>
   </div>
@@ -571,73 +572,48 @@
 </div>
 
 <!-- ============================================================
-     FIREBASE CONFIG + INIT (ES module)
-     import.meta.env.VITE_* is resolved at BUILD TIME by Vite.
-     - Under `vite dev` / `vite build`: real values are injected.
-     - Served as a plain static file: import.meta.env is undefined,
-       so we fall back cleanly to standalone demo mode.
+     FIREBASE CONFIG + INIT  (Path A — hardcoded web config)
+     The web apiKey is a public project identifier, not a secret.
+     Real protection = Authorized Domains (set in console) + Security Rules.
+     NOTE: Firebase Auth needs http://localhost or https — it will NOT
+     work from a file:// path. Serve the page over a local server.
      ============================================================ -->
 <script type="module">
-  // 1 — Reactive env lookup wrapper (safe when Vite is absent)
-  const ENV = (import.meta && import.meta.env) ? import.meta.env : {};
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    setPersistence,
+    browserLocalPersistence
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
   const firebaseConfig = {
-    apiKey:            ENV.VITE_FIREBASE_API_KEY,
-    authDomain:        ENV.VITE_FIREBASE_AUTH_DOMAIN,
-    databaseURL:       ENV.VITE_FIREBASE_DATABASE_URL,
-    projectId:         ENV.VITE_FIREBASE_PROJECT_ID,
-    storageBucket:     ENV.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: ENV.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId:             ENV.VITE_FIREBASE_APP_ID,
-    measurementId:     ENV.VITE_FIREBASE_MEASUREMENT_ID,
+    apiKey: "AIzaSyCSh7D2gZdsRP4q9ylI--z2qPbDJiSgh9A",
+    authDomain: "sparshika-1c56d.firebaseapp.com",
+    databaseURL: "https://sparshika-1c56d-default-rtdb.firebaseio.com",
+    projectId: "sparshika-1c56d",
+    storageBucket: "sparshika-1c56d.firebasestorage.app",
+    messagingSenderId: "122295905021",
+    appId: "1:122295905021:web:d76cbf35d390e44142ac94",
+    measurementId: "G-PWT9G1P4JW"
   };
-
-  // Required keys must all be present & non-empty to attempt a live init
-  const REQUIRED = ['apiKey','authDomain','projectId','appId'];
-  const isConfigured = REQUIRED.every(k => typeof firebaseConfig[k] === 'string' && firebaseConfig[k].length > 0);
 
   // Shared state the rest of the app reads at click-time
-  const state = {
-    config: firebaseConfig,
-    isConfigured,
-    ready: false,
-    app: null,
-    auth: null,
-    analytics: null,
-    signIn: null,        // () => Promise
-  };
+  const state = { ready: false, app: null, auth: null, signInWithEmail: null };
   window.__SPARSHIKA_FB__ = state;
 
-  if (!isConfigured) {
-    console.info('[Sparshika] Firebase env vars not detected — running in standalone demo mode. ' +
-      'Build this file through Vite (vite dev / vite build) with VITE_FIREBASE_* set to enable live auth.');
-  } else {
-    try {
-      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
-      const { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } =
-        await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+  try {
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
 
-      const app  = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
-
-      state.app  = app;
-      state.auth = auth;
-      state.signIn = () => signInAnonymously(auth);
-
-      // Analytics is optional and only valid over http(s) with a measurementId
-      if (firebaseConfig.measurementId && location.protocol.startsWith('http')) {
-        try {
-          const { getAnalytics, isSupported } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js');
-          if (await isSupported()) state.analytics = getAnalytics(app);
-        } catch (_) {}
-      }
-
-      state.ready = true;
-      console.info('[Sparshika] Firebase initialized for project:', firebaseConfig.projectId);
-    } catch (err) {
-      console.warn('[Sparshika] Firebase init failed — continuing in demo mode:', err.message);
-    }
+    state.app  = app;
+    state.auth = auth;
+    state.signInWithEmail = (email, password) => signInWithEmailAndPassword(auth, email, password);
+    state.ready = true;
+    console.info('[Sparshika] Firebase initialized for project:', firebaseConfig.projectId);
+  } catch (err) {
+    console.error('[Sparshika] Firebase init failed:', err.message);
   }
 </script>
 
@@ -671,44 +647,58 @@
     e.preventDefault();
     const btn = document.getElementById('loginBtn');
     const label = document.getElementById('loginLabel');
+    const errEl = document.getElementById('loginError');
     if (btn.disabled) return false;
+
+    const email = document.getElementById('liEmail').value.trim();
+    const password = document.getElementById('liToken').value;
+    const fb = window.__SPARSHIKA_FB__;
+
+    // reset any prior error
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+
+    const fail = (msg) => {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.style.opacity = '1';
+      label.textContent = 'INITIALIZE SESSION';
+    };
+
+    if (!fb || !fb.ready || typeof fb.signInWithEmail !== 'function') {
+      fail('Authentication service unavailable. Serve the page over http://localhost (not file://) and check your connection.');
+      return false;
+    }
+
     btn.disabled = true; btn.style.opacity = '.85';
     label.innerHTML = '<span style="display:inline-flex;align-items:center;gap:9px"><span class="spinner"></span>AUTHENTICATING…</span>';
 
-    const email = document.getElementById('liEmail').value.trim() || 'admin@company.com';
-    const workspace = document.getElementById('liWorkspace').value.trim();
-    const fb = window.__SPARSHIKA_FB__;
-
-    const reset = () => { btn.disabled = false; btn.style.opacity = '1'; label.textContent = 'INITIALIZE SESSION'; };
-    const grantSession = (mode) => {
-      // log an analytics event if Firebase Analytics initialized
-      if (fb && fb.analytics) {
-        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js')
-          .then(({ logEvent }) => logEvent(fb.analytics, 'trial_session_start', { workspace, mode }))
-          .catch(() => {});
-      }
-      closeModal();
-      openDownloadCenter(email);
-      reset();
-    };
-
-    setTimeout(() => { label.textContent = 'HANDSHAKE OK — PROVISIONING'; }, 900);
-
-    setTimeout(() => {
-      // Live path: a configured + initialized Firebase project authorizes the session token.
-      if (fb && fb.ready && typeof fb.signIn === 'function') {
-        label.textContent = 'AUTHORIZING SESSION TOKEN…';
-        fb.signIn()
-          .then(() => grantSession('firebase'))
-          .catch((err) => { console.warn('[Sparshika] Firebase sign-in failed — demo session granted:', err.message); grantSession('fallback'); });
-      } else {
-        // Standalone demo path (no Vite build / no env config present).
-        grantSession('demo');
-      }
-    }, 1700);
+    fb.signInWithEmail(email, password)
+      .then((cred) => {
+        label.textContent = 'HANDSHAKE OK — PROVISIONING';
+        setTimeout(() => {
+          closeModal();
+          openDownloadCenter(cred.user.email || email);
+          btn.disabled = false; btn.style.opacity = '1';
+          label.textContent = 'INITIALIZE SESSION';
+        }, 600);
+      })
+      .catch((err) => {
+        const map = {
+          'auth/invalid-email': 'That email address is not valid.',
+          'auth/missing-password': 'Please enter your access token (password).',
+          'auth/invalid-credential': 'Invalid credentials. Check your email and access token.',
+          'auth/user-not-found': 'No account found for that email.',
+          'auth/wrong-password': 'Incorrect access token for this account.',
+          'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+          'auth/network-request-failed': 'Network error. Check your connection and try again.'
+        };
+        fail(map[err.code] || ('Sign-in failed: ' + err.code));
+      });
 
     return false;
   }
+  window.authenticate = authenticate;
 
   /* ---------- downloads center ---------- */
   function openDownloadCenter(email){
