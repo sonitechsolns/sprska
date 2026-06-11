@@ -152,6 +152,29 @@
   .eco-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--cyan);margin-top:4px}
   .eco-link svg{width:14px;height:14px}
 
+  /* pricing */
+  .pricing{background:var(--bg2);border-top:1px solid var(--line)}
+  .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto;align-items:stretch}
+  .price-card{position:relative;background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:18px;padding:38px 30px;display:flex;flex-direction:column;transition:all .35s}
+  .price-card:hover{transform:translateY(-6px);border-color:rgba(6,182,212,0.3)}
+  .price-card.featured{border-color:rgba(6,182,212,0.5);background:linear-gradient(165deg,rgba(6,182,212,0.08),rgba(10,17,40,0.3))}
+  .price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--cyan-500);color:var(--bg);font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:5px 14px;border-radius:99px;white-space:nowrap}
+  .price-tier{font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#fff;margin-bottom:6px}
+  .price-target{font-size:12.5px;color:var(--slate-d);margin-bottom:26px;font-family:var(--font-mono)}
+  .price-amt{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
+  .price-num{font-family:var(--font-display);font-weight:700;font-size:42px;color:#fff;line-height:1}
+  .price-unit{font-size:13px;color:var(--slate)}
+  .price-sub{font-size:12.5px;color:var(--slate-d);margin-bottom:28px}
+  .price-feats{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:32px;flex:1}
+  .price-feats li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:#cbd5e1;font-weight:300}
+  .price-feats svg{width:16px;height:16px;color:var(--cyan);flex-shrink:0;margin-top:2px;stroke-width:2}
+  .price-cta{width:100%;padding:13px;border-radius:8px;font-size:13px;letter-spacing:.12em;font-weight:600;transition:all .3s;text-align:center}
+  .price-cta.solid{background:var(--cyan-500);color:var(--bg)}
+  .price-cta.solid:hover{background:var(--cyan);box-shadow:0 0 26px rgba(6,182,212,0.45)}
+  .price-cta.ghost{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#fff}
+  .price-cta.ghost:hover{background:rgba(255,255,255,0.09)}
+  .price-note{text-align:center;font-size:12.5px;color:var(--slate-d);margin-top:36px}
+
   /* footer */
   footer{border-top:1px solid var(--line);background:#020202;padding:64px 0 32px;position:relative;z-index:1}
   .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:56px}
@@ -238,6 +261,7 @@
       <a href="#platform">PLATFORM</a>
       <a href="#features">CAPABILITIES</a>
       <a href="#roi">ROI</a>
+      <a href="#pricing">PRICING</a>
       <a href="#ecosystem">ECOSYSTEM</a>
     </div>
     <div class="nav-cta">
@@ -374,6 +398,66 @@
   </div>
 </section>
 
+<!-- PRICING -->
+<section class="block pricing" id="pricing">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Pricing · Volume Discount</div>
+      <h2>PAY PER RACK, SCALE AS YOU GROW</h2>
+      <p>Transparent per-rack pricing that drops as your fleet grows. No flat fees — you pay only for the racks you bring under the Sparshika twin.</p>
+    </div>
+    <div class="price-grid reveal">
+
+      <div class="price-card">
+        <div class="price-tier">Startup</div>
+        <div class="price-target">Target · up to 10 racks</div>
+        <div class="price-amt"><span class="price-num">₹2,500</span><span class="price-unit">/rack/mo</span></div>
+        <div class="price-sub">Billed monthly · per active rack</div>
+        <ul class="price-feats">
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Full spatial digital-twin engine</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Live local telemetry hooks</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Up to 10 racks under management</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Standard email support</li>
+        </ul>
+        <button class="price-cta ghost" onclick="openRequestModal('Startup')">REQUEST ACCESS</button>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-tier">Enterprise</div>
+        <div class="price-target">Target · 11–50 racks</div>
+        <div class="price-amt"><span class="price-num">₹1,800</span><span class="price-unit">/rack/mo</span></div>
+        <div class="price-sub">Billed monthly · per active rack</div>
+        <ul class="price-feats">
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Everything in Startup</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>AI anomaly &amp; Z-score alerts</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>11–50 racks under management</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Multi-admin workspace controls</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Priority support</li>
+        </ul>
+        <button class="price-cta solid" onclick="openRequestModal('Enterprise')">REQUEST ACCESS</button>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Hyperscale</div>
+        <div class="price-target">Target · 51+ racks</div>
+        <div class="price-amt"><span class="price-num">Custom</span></div>
+        <div class="price-sub">Volume pricing · tailored to your fleet</div>
+        <ul class="price-feats">
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Everything in Enterprise</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Unlimited racks under management</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Custom hardware mesh library</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Dedicated solutions engineer</li>
+          <li><svg class="icon"><path d="m5 12 5 5L20 7"/></svg>Enterprise SLA</li>
+        </ul>
+        <button class="price-cta ghost" onclick="openRequestModal('Hyperscale')">CONTACT US</button>
+      </div>
+
+    </div>
+    <p class="price-note">All prices in INR, exclusive of applicable taxes. Access is provisioned manually after review.</p>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer id="infrastructure">
   <div class="container">
@@ -472,6 +556,15 @@
         <label>WORK EMAIL</label>
         <input id="rqEmail" type="email" placeholder="jane@acme.com" required />
       </div>
+      <div class="field">
+        <label>PLAN OF INTEREST</label>
+        <select id="rqTier" required>
+          <option value="Startup">Startup — up to 10 racks · ₹2,500/rack/mo</option>
+          <option value="Enterprise" selected>Enterprise — 11–50 racks · ₹1,800/rack/mo</option>
+          <option value="Hyperscale">Hyperscale — 51+ racks · Custom</option>
+          <option value="Not sure">Not sure yet — need guidance</option>
+        </select>
+      </div>
       <div style="display:flex;gap:12px">
         <div class="field" style="flex:1">
           <label>DATACENTER SIZE (RACKS)</label>
@@ -485,6 +578,11 @@
       <div class="field">
         <label>MESSAGE</label>
         <textarea id="rqMessage" rows="3" placeholder="A few words about your use case…" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid #334155;border-radius:6px;padding:11px 15px;color:#fff;font-family:var(--font-body);font-size:14px;outline:none;resize:vertical" required></textarea>
+      </div>
+
+      <div id="rqEstimate" style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.25);border-radius:8px;padding:13px 15px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span style="font-size:12px;color:rgba(6,182,212,0.85);font-family:var(--font-mono);letter-spacing:.05em">EST. MONTHLY</span>
+        <span id="rqEstimateVal" style="font-family:var(--font-display);font-weight:600;font-size:16px;color:#fff">—</span>
       </div>
 
       <div id="requestError" style="display:none;font-size:12.5px;color:#fca5a5;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:10px 12px;margin-bottom:8px"></div>
@@ -557,8 +655,10 @@
       name: data.name,
       company: data.company,
       email: data.email,
+      tier: data.tier,
       racks: data.racks,
       admins: data.admins,
+      estimatedMonthly: data.estimatedMonthly,
       message: data.message,
       status: 'new',
       createdAt: serverTimestamp()
@@ -658,12 +758,20 @@
   /* ---------- Request a workspace (Formspree + Firestore) ---------- */
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnjybeal';
 
-  function openRequestModal(){
+  // Tiered per-rack rates (₹/rack/month). Hyperscale = custom (no auto price).
+  const RACK_RATES = { 'Startup': 2500, 'Enterprise': 1800, 'Hyperscale': null, 'Not sure': null };
+
+  function openRequestModal(preselectTier){
     document.getElementById('loginOverlay').classList.remove('show');
     // reset form/success state each open
     document.getElementById('requestForm').style.display = 'block';
     document.getElementById('requestSuccess').style.display = 'none';
     document.getElementById('requestError').style.display = 'none';
+    // preselect tier when opened from a pricing card
+    if (typeof preselectTier === 'string' && RACK_RATES.hasOwnProperty(preselectTier)) {
+      document.getElementById('rqTier').value = preselectTier;
+    }
+    updateEstimate();
     document.getElementById('requestOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
   }
@@ -671,6 +779,24 @@
     document.getElementById('requestOverlay').classList.remove('show');
     document.body.style.overflow = '';
   }
+
+  // Live monthly estimate: racks × tier rate
+  function updateEstimate(){
+    const tier = document.getElementById('rqTier').value;
+    const racks = parseInt(document.getElementById('rqRacks').value, 10);
+    const rate = RACK_RATES[tier];
+    const out = document.getElementById('rqEstimateVal');
+    if (rate === null) {
+      out.textContent = tier === 'Hyperscale' ? 'Custom quote' : 'We\u2019ll advise';
+    } else if (Number.isFinite(racks) && racks > 0) {
+      out.textContent = '₹' + (racks * rate).toLocaleString('en-IN') + '/mo';
+    } else {
+      out.textContent = '₹' + rate.toLocaleString('en-IN') + '/rack/mo';
+    }
+  }
+  document.getElementById('rqTier').addEventListener('change', updateEstimate);
+  document.getElementById('rqRacks').addEventListener('input', updateEstimate);
+
   window.openRequestModal = openRequestModal;
   window.closeRequestModal = closeRequestModal;
 
@@ -684,10 +810,16 @@
       name:    document.getElementById('rqName').value.trim(),
       company: document.getElementById('rqCompany').value.trim(),
       email:   document.getElementById('rqEmail').value.trim(),
+      tier:    document.getElementById('rqTier').value,
       racks:   parseInt(document.getElementById('rqRacks').value, 10),
       admins:  parseInt(document.getElementById('rqAdmins').value, 10),
       message: document.getElementById('rqMessage').value.trim()
     };
+    // computed monthly estimate (null for custom/unsure tiers)
+    const rate = RACK_RATES[data.tier];
+    data.estimatedMonthly = (rate && Number.isFinite(data.racks))
+      ? '₹' + (data.racks * rate).toLocaleString('en-IN') + '/mo'
+      : (data.tier === 'Hyperscale' ? 'Custom quote' : 'TBD');
 
     errEl.style.display = 'none';
 
@@ -716,8 +848,9 @@
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: data.name, company: data.company, email: data.email,
-        racks: data.racks, admins: data.admins, message: data.message,
-        _subject: 'New Sparshika workspace request — ' + data.company
+        tier: data.tier, racks: data.racks, admins: data.admins,
+        estimatedMonthly: data.estimatedMonthly, message: data.message,
+        _subject: 'New Sparshika request — ' + data.company + ' (' + data.tier + ')'
       })
     }).then(r => { if (!r.ok) throw new Error('Formspree ' + r.status); return r; });
 
